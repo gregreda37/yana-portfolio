@@ -107,7 +107,7 @@ export default function EditSettings({ onToast }) {
 
       <div className="mt-8">
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Savingâ¦' : 'Save Settings'}
+          {saving ? 'Saving…' : 'Save Settings'}
         </button>
       </div>
     </div>

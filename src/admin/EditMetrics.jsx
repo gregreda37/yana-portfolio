@@ -97,7 +97,7 @@ export default function EditMetrics({ onToast }) {
       <div className="mt-4 flex gap-4">
         <button onClick={addItem} className="btn-outline text-sm">+ Add Metric</button>
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Savingâ¦' : 'Save Metrics'}
+          {saving ? 'Saving…' : 'Save Metrics'}
         </button>
       </div>
     </div>

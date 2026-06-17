@@ -76,8 +76,8 @@ export default function EditTestimonials({ onToast }) {
                     <span className="font-display text-sm text-gray-700">{t.initials}</span>
                   </div>
                   <div>
-                    <p className="font-body font-semibold text-sm text-gray-800">{t.name} <span className="font-normal text-gray-400">â {t.company}</span></p>
-                    <p className="font-body text-xs text-gray-500 mt-1 line-clamp-2 italic">"{t.quote.slice(0, 100)}â¦"</p>
+                    <p className="font-body font-semibold text-sm text-gray-800">{t.name} <span className="font-normal text-gray-400">— {t.company}</span></p>
+                    <p className="font-body text-xs text-gray-500 mt-1 line-clamp-2 italic">"{t.quote.slice(0, 100)}…"</p>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -93,7 +93,7 @@ export default function EditTestimonials({ onToast }) {
       <div className="mt-4 flex gap-4">
         <button onClick={addItem} className="btn-outline text-sm">+ Add Testimonial</button>
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Savingâ¦' : 'Save Testimonials'}
+          {saving ? 'Saving…' : 'Save Testimonials'}
         </button>
       </div>
     </div>

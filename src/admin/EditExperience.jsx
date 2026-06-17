@@ -89,7 +89,7 @@ export default function EditExperience({ onToast }) {
                 <div className="admin-card flex items-start justify-between gap-4">
                   <div>
                     <p className="font-body font-semibold text-gray-800 text-sm">{job.role} <span className="text-blush-500">@ {job.company}</span></p>
-                    <p className="font-body text-xs text-gray-400">{job.period} Â· {job.location}</p>
+                    <p className="font-body text-xs text-gray-400">{job.period} · {job.location}</p>
                     <p className="font-body text-xs text-gray-500 mt-1">{job.highlights.length} highlight{job.highlights.length !== 1 ? 's' : ''}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -125,7 +125,7 @@ export default function EditExperience({ onToast }) {
                 <div className="admin-card flex items-start justify-between gap-4">
                   <div>
                     <p className="font-body font-semibold text-gray-800 text-sm">{ed.degree}</p>
-                    <p className="font-body text-xs text-gray-400">{ed.school} Â· {ed.year}</p>
+                    <p className="font-body text-xs text-gray-400">{ed.school} · {ed.year}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => openEdu(idx)} className="admin-btn-sm">Edit</button>
@@ -149,7 +149,7 @@ export default function EditExperience({ onToast }) {
 
       <div className="mt-8">
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Savingâ¦' : 'Save Experience'}
+          {saving ? 'Saving…' : 'Save Experience'}
         </button>
       </div>
     </div>

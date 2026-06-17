@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
-import { parseResumeStreaming, hasAIConfig } from '../utils/parseResumeWithAI';
+import { parseResumeStreaming } from '../utils/parseResumeWithAI';
 import {
   FiUpload, FiFile, FiCheck, FiArrowRight, FiAlertCircle,
   FiPlus, FiX, FiUser, FiTrendingUp, FiBriefcase,
@@ -21,6 +21,74 @@ function Typewriter({ text, speed = 22 }) {
     return () => clearInterval(id);
   }, [text, speed]);
   return <>{shown}<span className="opacity-0 select-none">|</span></>;
+}
+
+// ── Cycling status messages ───────────────────────────────────────────────────
+const CYCLING_MSGS = {
+  0: ['Scanning your document…', 'Reading every page…', 'Parsing your text…'],
+  1: ['Reading with Yana…', 'Discovering your story…', 'Mapping your career…', 'Finding your wins…', 'Identifying your skills…'],
+  2: ['Building your preview…', 'Putting it together…', 'Almost there…', 'Compiling your highlights…'],
+};
+
+function CyclingText({ step }) {
+  const messages = CYCLING_MSGS[step] ?? CYCLING_MSGS[0];
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => { setIdx(0); setVisible(true); }, [step]);
+
+  useEffect(() => {
+    if (messages.length <= 1) return;
+    const id = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % messages.length);
+        setVisible(true);
+      }, 350);
+    }, 2800);
+    return () => clearInterval(id);
+  }, [step]);
+
+  return (
+    <span style={{ transition: 'opacity 0.35s ease', opacity: visible ? 1 : 0 }}>
+      {messages[idx]}
+    </span>
+  );
+}
+
+// ── Step progress bar ─────────────────────────────────────────────────────────
+const STEP_LABELS = ['Reading PDF', 'Reading with Yana', 'Building Preview'];
+
+function StepBar({ step }) {
+  return (
+    <div className="flex items-start justify-center mt-5">
+      {STEP_LABELS.map((label, i) => (
+        <div key={i} className="flex items-start">
+          <div className="flex flex-col items-center gap-1.5">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-500 ${
+              i < step  ? 'bg-green-400 text-white' :
+              i === step ? 'bg-blush-500 text-white ring-4 ring-blush-100' :
+                           'bg-gray-100 text-gray-300'
+            }`}>
+              {i < step ? (
+                <FiCheck size={12} strokeWidth={3} />
+              ) : i === step ? (
+                <span className="w-2 h-2 bg-white rounded-full block animate-pulse" />
+              ) : (
+                <span className="font-body text-[10px] font-bold leading-none">{i + 1}</span>
+              )}
+            </div>
+            <span className={`font-body text-[10px] font-medium whitespace-nowrap transition-colors duration-300 ${
+              i < step ? 'text-green-500' : i === step ? 'text-blush-500' : 'text-gray-300'
+            }`}>{label}</span>
+          </div>
+          {i < STEP_LABELS.length - 1 && (
+            <div className={`w-8 h-px mt-3.5 mx-1 transition-all duration-700 ${i < step ? 'bg-green-300' : 'bg-gray-100'}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 // ── Icon map for metrics ──────────────────────────────────────────────────────
@@ -121,12 +189,12 @@ export default function ImportResume() {
   // phase: upload | working | review | saving
   const [phase, setPhase] = useState('upload');
   const [file, setFile] = useState(null);
-  const [apiKey, setApiKey] = useState('');
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
 
   // Working phase — live section data and revealed items
-  const [workLabel, setWorkLabel] = useState('');
+  const [workStep, setWorkStep] = useState(0);
+  const [workEmoji, setWorkEmoji] = useState('📄');
   const [workError, setWorkError] = useState('');
   const [liveProfile, setLiveProfile] = useState(null);
   const [liveMetrics, setLiveMetrics] = useState(null);
@@ -204,31 +272,31 @@ export default function ImportResume() {
     setError('');
     setWorkError('');
     setPhase('working');
-    setWorkLabel('Reading your resume…');
+    setWorkStep(0);
+    setWorkEmoji('📄');
     setLiveProfile(null); setLiveMetrics(null); setLiveExperience(null);
     setShownProfileFields([]); setShownMetrics([]); setShownJobs([]);
     detectedRef.current = { profile: false, metrics: false, experience: false };
 
-    await parseResumeStreaming(file, apiKey, {
+    await parseResumeStreaming(file, {
       onProgress: (step) => {
-        if (step === 'streaming') setWorkLabel('Reading with Yana…');
+        if (step === 'streaming') { setWorkStep(1); setWorkEmoji('✨'); }
       },
       onSection: (name, data) => {
         detectedRef.current[name] = true;
         if (name === 'profile') {
+          setWorkStep(2); setWorkEmoji('👤');
           setLiveProfile(data);
-          setWorkLabel('📊 Discovering your key achievements…');
         } else if (name === 'metrics') {
+          setWorkEmoji('📊');
           setLiveMetrics(data);
-          setWorkLabel('💼 Mapping your career history…');
         } else if (name === 'experience') {
+          setWorkEmoji('💼');
           setLiveExperience(data);
-          setWorkLabel('✅ All done — review your profile below!');
         }
       },
       onError: (msg) => {
         console.error('Resume import error:', msg);
-        setWorkLabel('');
         setWorkError(msg);
       },
       onComplete: (parsed) => {
@@ -282,21 +350,6 @@ export default function ImportResume() {
             </p>
           </div>
 
-          {!hasAIConfig && (
-            <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
-              <label className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-2">
-                Anthropic API Key
-              </label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                placeholder="sk-ant-…"
-                className="w-full font-body text-sm font-mono border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
-              />
-              <p className="font-body text-xs text-gray-400 mt-2">Used only for this extraction — never stored.</p>
-            </div>
-          )}
 
           {/* Drop zone */}
           <div
@@ -339,7 +392,7 @@ export default function ImportResume() {
 
           <button
             onClick={startAnalysis}
-            disabled={!file || (!hasAIConfig && !apiKey.trim())}
+            disabled={!file}
             className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed py-4 text-base"
           >
             ✨ Analyze &amp; Build My Portfolio
@@ -361,7 +414,7 @@ export default function ImportResume() {
       <div className="flex-1 overflow-y-auto px-4 py-10">
         <div className="w-full max-w-xl mx-auto space-y-5">
 
-          {/* Status pill / error state */}
+          {/* Status header / error state */}
           {workError ? (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
               <FiAlertCircle className="text-red-400 mx-auto mb-3" size={22} />
@@ -375,17 +428,27 @@ export default function ImportResume() {
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-3">
-              <div className="inline-flex items-center gap-2.5 bg-white border border-gray-100 rounded-full px-5 py-2.5 shadow-sm">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blush-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blush-500" />
-                </span>
-                <span className="font-body text-sm text-gray-700 font-medium">{workLabel}</span>
+            <div className="flex flex-col items-center mb-6">
+              {/* Pulsing animated icon */}
+              <div className="relative inline-block mb-5">
+                <span className="absolute inset-0 rounded-3xl bg-blush-200 animate-ping opacity-25" />
+                <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-white to-blush-50 border border-blush-100 flex items-center justify-center shadow-sm">
+                  <span className="text-3xl" style={{ transition: 'all 0.5s ease' }}>{workEmoji}</span>
+                </div>
               </div>
+
+              {/* Cycling status text */}
+              <h2 className="font-display text-2xl text-gray-700 font-light text-center" style={{ minHeight: '2rem' }}>
+                <CyclingText step={workStep} />
+              </h2>
+
+              {/* Step progress */}
+              <StepBar step={workStep} />
+
+              {/* Cancel */}
               <button
                 onClick={() => { setWorkError(''); setPhase('upload'); }}
-                className="font-body text-xs text-gray-300 hover:text-gray-500 transition-colors"
+                className="font-body text-xs text-gray-300 hover:text-gray-500 transition-colors mt-5"
               >
                 Cancel
               </button>

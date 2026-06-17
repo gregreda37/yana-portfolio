@@ -1,3 +1,8 @@
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/config';
+
+const callSendEmail = httpsCallable(functions, 'sendEmail');
+
 function buildResumeEmailHtml({ profile, metrics, experience, healthcare, settings, portfolioUrl }) {
   const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
 
@@ -8,7 +13,7 @@ function buildResumeEmailHtml({ profile, metrics, experience, healthcare, settin
 
   const metricCards = (metrics?.items ?? []).map(m => `
     <td style="text-align:center;padding:12px 20px">
-      <div style="font-size:26px;font-weight:700;color:#f4547e;font-family:Georgia,serif">${m.value}${m.suffix ?? ''}</div>
+      <div style="font-size:26px;font-weight:700;color:#f4547e;font-family:Georgia,serif">${m.prefix ?? ''}${m.value}${m.suffix ?? ''}</div>
       <div style="font-size:11px;color:#9ca3af;margin-top:3px;font-family:Arial,sans-serif">${m.label}</div>
     </td>`).join('');
 
@@ -19,7 +24,7 @@ function buildResumeEmailHtml({ profile, metrics, experience, healthcare, settin
         <span style="font-size:12px;color:#9ca3af;font-family:Arial,sans-serif">${j.period ?? ''}</span>
       </div>
       <div style="font-size:13px;color:#6b7280;margin:2px 0 6px;font-family:Arial,sans-serif">${j.company ?? ''}${j.location ? ' &middot; ' + j.location : ''}</div>
-      ${(j.bullets ?? []).length ? `<ul style="margin:0;padding-left:16px">${j.bullets.map(b => `<li style="font-size:12px;color:#4b5563;margin-bottom:3px;font-family:Arial,sans-serif">${b}</li>`).join('')}</ul>` : ''}
+      ${(j.highlights ?? []).length ? `<ul style="margin:0;padding-left:16px">${j.highlights.map(b => `<li style="font-size:12px;color:#4b5563;margin-bottom:3px;font-family:Arial,sans-serif">${b}</li>`).join('')}</ul>` : ''}
     </td></tr>`).join('');
 
   const skills = (experience?.skills ?? []).map(s =>
@@ -124,25 +129,13 @@ export async function sendResumeEmail({ requesterEmail, requesterName, portfolio
 
   const html = buildResumeEmailHtml({ ...portfolioData, portfolioUrl });
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${import.meta.env.VITE_RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: `${fullName} via Yana <${import.meta.env.VITE_RESEND_FROM}>`,
-      reply_to: profile.email ? [profile.email] : undefined,
-      to: [requesterEmail],
-      subject: `${fullName} shared their resume with you`,
-      html,
-    }),
+  const result = await callSendEmail({
+    from: `${fullName} via Yana <noreply@findyana.com>`,
+    to: requesterEmail,
+    replyTo: profile.email || undefined,
+    subject: `${fullName} shared their resume with you`,
+    html,
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message ?? `Resend error ${res.status}`);
-  }
-
-  return res.json();
+  return result.data;
 }

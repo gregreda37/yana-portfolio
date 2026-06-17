@@ -30,7 +30,7 @@ export default function EditPageant({ onToast }) {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  /* ââ Photo upload âââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+  /* -- Photo upload ------------------------------------------------------- */
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -49,7 +49,7 @@ export default function EditPageant({ onToast }) {
 
   const removePhoto = (i) => set('photos', form.photos.filter((_, idx) => idx !== i));
 
-  /* ââ Title CRUD âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+  /* -- Title CRUD --------------------------------------------------------- */
   const blankTitle = () => ({ id: Date.now(), year: new Date().getFullYear().toString(), title: '', organization: '', placement: 'Title Holder' });
 
   const addTitle = () => {
@@ -63,7 +63,7 @@ export default function EditPageant({ onToast }) {
 
   const removeTitle = (id) => setTitles(prev => prev.filter(t => t.id !== id));
 
-  /* ââ Save âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+  /* -- Save --------------------------------------------------------------- */
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -142,7 +142,7 @@ export default function EditPageant({ onToast }) {
               >
                 <div>
                   <p className="font-body text-sm font-medium text-gray-700">{t.title || 'Untitled'}</p>
-                  <p className="font-body text-xs text-gray-400">{t.year} Â· {t.placement}</p>
+                  <p className="font-body text-xs text-gray-400">{t.year} · {t.placement}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -151,7 +151,7 @@ export default function EditPageant({ onToast }) {
                   >
                     <FiTrash2 size={13} />
                   </button>
-                  <span className="font-body text-xs text-gray-400">{editingTitle === t.id ? 'â²' : 'â¼'}</span>
+                  <span className="font-body text-xs text-gray-400">{editingTitle === t.id ? '▲' : '▼'}</span>
                 </div>
               </div>
 
@@ -186,7 +186,7 @@ export default function EditPageant({ onToast }) {
       <div className="grid sm:grid-cols-2 gap-5 mt-5">
         <div>
           <label className="admin-label">Achievements (one per line)</label>
-          <textarea rows={5} className="admin-input resize-none" value={form.achievements} onChange={e => set('achievements', e.target.value)} placeholder="Top 10 Finalist â Miss America 2024" />
+          <textarea rows={5} className="admin-input resize-none" value={form.achievements} onChange={e => set('achievements', e.target.value)} placeholder="Top 10 Finalist — Miss America 2024" />
         </div>
         <div>
           <label className="admin-label">Community Impact (one per line)</label>
@@ -197,11 +197,11 @@ export default function EditPageant({ onToast }) {
       {/* Photo gallery upload */}
       <div className="admin-card mt-5">
         <label className="admin-label">Photo Gallery</label>
-        <p className="font-body text-xs text-gray-400 mb-4">Upload pageant photos â they appear in a grid on your portfolio. Select multiple at once.</p>
+        <p className="font-body text-xs text-gray-400 mb-4">Upload pageant photos — they appear in a grid on your portfolio. Select multiple at once.</p>
 
         <label className="inline-flex items-center gap-2 admin-btn-sm cursor-pointer mb-4">
           <FiUpload size={12} />
-          {uploading ? 'Uploadingâ¦' : 'Upload Photos'}
+          {uploading ? 'Uploading…' : 'Upload Photos'}
           <input type="file" accept="image/*" multiple className="sr-only" onChange={handlePhotoUpload} disabled={uploading} />
         </label>
 
@@ -224,7 +224,7 @@ export default function EditPageant({ onToast }) {
 
       <div className="mt-8">
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Savingâ¦' : 'Save Pageant Section'}
+          {saving ? 'Saving…' : 'Save Pageant Section'}
         </button>
       </div>
     </div>

@@ -87,7 +87,7 @@ export default function EditBlog({ onToast }) {
                 <div>
                   <span className="font-body text-xs bg-blush-100 text-blush-600 px-2 py-0.5 rounded-full font-semibold">{post.category}</span>
                   <p className="font-body font-semibold text-sm text-gray-800 mt-1">{post.title}</p>
-                  <p className="font-body text-xs text-gray-400">{post.date} Â· {post.readTime}</p>
+                  <p className="font-body text-xs text-gray-400">{post.date} · {post.readTime}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => openEdit(idx)} className="admin-btn-sm">Edit</button>
@@ -102,7 +102,7 @@ export default function EditBlog({ onToast }) {
       <div className="mt-4 flex gap-4">
         <button onClick={addPost} className="btn-outline text-sm">+ Add Post</button>
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Savingâ¦' : 'Save Blog Posts'}
+          {saving ? 'Saving…' : 'Save Blog Posts'}
         </button>
       </div>
     </div>

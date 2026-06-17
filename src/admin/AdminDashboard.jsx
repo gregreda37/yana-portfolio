@@ -75,20 +75,26 @@ export default function AdminDashboard() {
           <span className="font-display text-xl text-blush-500 font-light">Yana</span>
           <span className="font-body text-xs text-gray-400 hidden sm:block">· Admin</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {username && (
             <a
               href={`/${username}`}
               target="_blank"
               rel="noreferrer"
-              className="font-body text-xs text-gray-400 hover:text-blush-500 transition-colors flex items-center gap-1"
+              className="font-body text-xs text-gray-400 hover:text-blush-500 transition-colors flex items-center gap-1 hidden sm:flex"
             >
               findyana.com/{username} <FiExternalLink size={11} />
             </a>
           )}
-          <span className="font-body text-xs text-gray-400 hidden sm:block">{user?.email}</span>
+          <span className="font-body text-xs text-gray-400 hidden md:block">{user?.email}</span>
+          <button
+            onClick={goImport}
+            className="flex items-center gap-1.5 font-body text-xs font-semibold text-blush-600 bg-blush-50 hover:bg-blush-100 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <FiUpload size={12} /> <span className="hidden sm:inline">Import Resume</span>
+          </button>
           <button onClick={handleLogout} className="flex items-center gap-1.5 font-body text-xs text-gray-500 hover:text-red-500 transition-colors">
-            <FiLogOut size={14} /> Logout
+            <FiLogOut size={14} /> <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
@@ -117,20 +123,6 @@ export default function AdminDashboard() {
             ))}
           </nav>
 
-          <div className="p-3 border-t border-gray-100 space-y-2">
-            <button
-              onClick={goImport}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 font-body text-xs font-semibold text-blush-600 bg-blush-50 hover:bg-blush-100 rounded-xl transition-colors"
-            >
-              <FiUpload size={13} className="shrink-0" />
-              Import from Resume
-            </button>
-            {username && (
-              <p className="font-body text-xs text-gray-400 text-center leading-snug pt-1">
-                <span className="text-blush-500 font-semibold">findyana.com/{username}</span>
-              </p>
-            )}
-          </div>
         </aside>
 
         {/* Overlay for mobile sidebar */}
