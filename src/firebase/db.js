@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './config';
 
 export async function getSection(uid, section) {
@@ -19,7 +19,7 @@ export async function claimUsername(uid, username) {
   const usernameRef = doc(db, 'usernames', username);
   const existing = await getDoc(usernameRef);
   if (existing.exists()) throw new Error('Username taken');
-  await setDoc(doc(db, 'users', uid), { username, createdAt: new Date() }, { merge: true });
+  await setDoc(doc(db, 'users', uid), { username, createdAt: serverTimestamp() }, { merge: true });
   await setDoc(usernameRef, { uid });
 }
 

@@ -45,6 +45,8 @@ export default function EditSettings({ onToast }) {
     try {
       await saveSection('settings', { accentColor, visible });
       onToast('Settings saved!');
+    } catch {
+      onToast('Save failed — check your connection and try again.');
     } finally {
       setSaving(false);
     }
@@ -105,7 +107,7 @@ export default function EditSettings({ onToast }) {
 
       <div className="mt-8">
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Saving…' : 'Save Settings'}
+          {saving ? 'Savingâ¦' : 'Save Settings'}
         </button>
       </div>
     </div>

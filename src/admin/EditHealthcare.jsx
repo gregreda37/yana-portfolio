@@ -19,6 +19,8 @@ export default function EditHealthcare({ onToast }) {
         skills: skills.split(',').map(s => s.trim()).filter(Boolean),
       });
       onToast(`${label} section saved!`);
+    } catch {
+      onToast('Save failed — check your connection and try again.');
     } finally {
       setSaving(false);
     }
@@ -27,7 +29,7 @@ export default function EditHealthcare({ onToast }) {
   return (
     <div>
       <h2 className="admin-section-title">Specialty Highlight</h2>
-      <p className="admin-section-desc">A custom background section shown in your About page. Name it anything — Healthcare, Tech, Finance, etc.</p>
+      <p className="admin-section-desc">A custom background section shown in your About page. Name it anything â Healthcare, Tech, Finance, etc.</p>
 
       <div className="mt-6 space-y-5">
         <div>
@@ -57,7 +59,7 @@ export default function EditHealthcare({ onToast }) {
 
       <div className="mt-8">
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Saving…' : `Save ${label || 'Section'}`}
+          {saving ? 'Savingâ¦' : `Save ${label || 'Section'}`}
         </button>
       </div>
     </div>

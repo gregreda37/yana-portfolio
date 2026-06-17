@@ -25,6 +25,8 @@ export default function EditMetrics({ onToast }) {
     try {
       await saveSection('metrics', { items });
       onToast('Metrics saved!');
+    } catch {
+      onToast('Save failed — check your connection and try again.');
     } finally {
       setSaving(false);
     }
@@ -95,7 +97,7 @@ export default function EditMetrics({ onToast }) {
       <div className="mt-4 flex gap-4">
         <button onClick={addItem} className="btn-outline text-sm">+ Add Metric</button>
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Saving…' : 'Save Metrics'}
+          {saving ? 'Savingâ¦' : 'Save Metrics'}
         </button>
       </div>
     </div>

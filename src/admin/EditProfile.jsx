@@ -89,6 +89,8 @@ export default function EditProfile({ onToast }) {
     try {
       await saveSection('profile', form);
       onToast('Profile saved!');
+    } catch {
+      onToast('Save failed — check your connection and try again.');
     } finally {
       setSaving(false);
     }

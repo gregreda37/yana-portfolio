@@ -1,21 +1,35 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Username → UID lookup (public read, only the owner can write)
+
+    // ── Username → UID lookup ───────────────────────────────────────────────
     match /usernames/{username} {
+      // Anyone can read (needed for public portfolio lookup + availability check)
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+
+      // Only allow a user to claim a username that maps to their own UID
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+
+      // Only the uid owner can rename or delete their username entry
+      allow update, delete: if request.auth != null
+                             && request.auth.uid == resource.data.uid;
     }
 
-    // User profile doc (stores username, createdAt)
+    // ── Per-user documents ──────────────────────────────────────────────────
     match /users/{uid} {
+      // Public read — portfolio pages are open to everyone
       allow read: if true;
+
+      // Only the authenticated owner can write their own user doc
       allow write: if request.auth != null && request.auth.uid == uid;
 
-      // Per-user portfolio sections
+      // ── Portfolio sections (profile, metrics, experience, …) ──────────────
       match /portfolio/{section} {
+        // Public read — portfolio pages are open to everyone
         allow read: if true;
+
+        // Only the authenticated owner can write their own sections
         allow write: if request.auth != null && request.auth.uid == uid;
       }
     }

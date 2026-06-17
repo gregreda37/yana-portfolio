@@ -37,6 +37,8 @@ export default function EditBooks({ onToast }) {
     try {
       await saveSection('books', { items });
       onToast('Books saved!');
+    } catch {
+      onToast('Save failed — check your connection and try again.');
     } finally {
       setSaving(false);
     }
@@ -70,7 +72,7 @@ export default function EditBooks({ onToast }) {
                     <input value={editBook.genre} onChange={e => set('genre', e.target.value)} className="admin-input" />
                   </div>
                   <div>
-                    <label className="admin-label">Rating (1–5)</label>
+                    <label className="admin-label">Rating (1â5)</label>
                     <input type="number" min={1} max={5} value={editBook.rating} onChange={e => set('rating', parseInt(e.target.value))} className="admin-input" />
                   </div>
                   <div>
@@ -127,8 +129,8 @@ export default function EditBooks({ onToast }) {
                   <div className={`w-8 self-stretch rounded-lg bg-gradient-to-b ${book.coverColor} shrink-0`} />
                   <div>
                     <p className="font-body font-semibold text-sm text-gray-800">{book.title}</p>
-                    <p className="font-body text-xs text-gray-400">{book.author} · {book.year}</p>
-                    <p className="font-body text-xs text-gray-500 mt-0.5">{book.takeaways.length} takeaway{book.takeaways.length !== 1 ? 's' : ''} · {'★'.repeat(book.rating)}</p>
+                    <p className="font-body text-xs text-gray-400">{book.author} Â· {book.year}</p>
+                    <p className="font-body text-xs text-gray-500 mt-0.5">{book.takeaways.length} takeaway{book.takeaways.length !== 1 ? 's' : ''} Â· {'â'.repeat(book.rating)}</p>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -144,7 +146,7 @@ export default function EditBooks({ onToast }) {
       <div className="mt-4 flex gap-4">
         <button onClick={addBook} className="btn-outline text-sm">+ Add Book</button>
         <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-60">
-          {saving ? 'Saving…' : 'Save Books'}
+          {saving ? 'Savingâ¦' : 'Save Books'}
         </button>
       </div>
     </div>

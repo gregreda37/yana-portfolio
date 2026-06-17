@@ -65,6 +65,7 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
     let cancelled = false;
     async function load() {
       try {
+        // ── 1. Read all sections ──────────────────────────────────────────
         const results = await Promise.all(SECTIONS.map(s => getSection(uid, s)));
         if (cancelled) return;
 
@@ -83,11 +84,19 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
           }
           setData(prev => ({ ...prev, ...updates }));
         } else if (!readOnly) {
-          await Promise.all(SECTIONS.map(s => persistSection(uid, s, DEFAULTS[s])));
-          if (!cancelled) setData(DEFAULTS);
+          // ── 2. First-time user: seed default data ───────────────────────
+          try {
+            await Promise.all(SECTIONS.map(s => persistSection(uid, s, DEFAULTS[s])));
+            if (!cancelled) setData(DEFAULTS);
+          } catch (seedErr) {
+            console.error('Failed to seed default data for new user:', seedErr.message);
+            // Still show defaults in-memory so the UI isn't broken
+            if (!cancelled) setData(DEFAULTS);
+          }
         }
       } catch (e) {
-        console.warn('Firestore unavailable — using static defaults.', e.message);
+        console.error('Failed to load portfolio data from Firestore:', e.message);
+        // Fall back to in-memory defaults so the UI still renders
       } finally {
         if (!cancelled) setFirestoreLoaded(true);
       }
