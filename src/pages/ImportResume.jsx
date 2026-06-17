@@ -285,13 +285,13 @@ export default function ImportResume() {
           {!hasAIConfig && (
             <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
               <label className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-2">
-                OpenAI API Key
+                Anthropic API Key
               </label>
               <input
                 type="password"
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
-                placeholder="sk-…"
+                placeholder="sk-ant-…"
                 className="w-full font-body text-sm font-mono border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
               />
               <p className="font-body text-xs text-gray-400 mt-2">Used only for this extraction — never stored.</p>

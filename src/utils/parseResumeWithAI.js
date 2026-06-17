@@ -40,82 +40,36 @@ async function extractPdfText(file) {
   return pages.join('\n\n');
 }
 
-// ── AI backend resolution (Claude > Azure > OpenAI) ──────────────────────────
+// ── Claude API config ─────────────────────────────────────────────────────────
 function resolveConfig(manualKey) {
-  // Claude (Anthropic) — primary
-  const isAnthropicKey = (k) => typeof k === 'string' && k.startsWith('sk-ant-');
-  const anthropicKey = (isAnthropicKey(manualKey) ? manualKey : null)
-    ?? import.meta.env.VITE_ANTHROPIC_API_KEY;
-  if (anthropicKey) {
-    return {
-      type: 'anthropic',
-      url: 'https://api.anthropic.com/v1/messages',
-      headers: {
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-        'content-type': 'application/json',
-      },
-    };
-  }
-
-  // Azure OpenAI — fallback
-  const azureKey    = import.meta.env.VITE_AZURE_OPENAI_API_KEY;
-  const azureEndpt  = import.meta.env.VITE_AZURE_OPENAI_ENDPOINT;
-  if (azureKey && azureEndpt) {
-    const azureVer    = import.meta.env.VITE_AZURE_OPENAI_API_VERSION ?? '2024-12-01-preview';
-    const azureDeploy = import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT ?? 'gpt-35-turbo';
-    const base = azureEndpt.replace(/\/$/, '');
-    return {
-      type: 'azure',
-      url: `${base}/openai/deployments/${azureDeploy}/chat/completions?api-version=${azureVer}`,
-      headers: { 'api-key': azureKey, 'Content-Type': 'application/json' },
-    };
-  }
-
-  // Standard OpenAI — fallback
-  const openaiKey = (!isAnthropicKey(manualKey) && manualKey) || import.meta.env.VITE_OPENAI_API_KEY;
-  if (openaiKey) {
-    return {
-      type: 'openai',
-      url: 'https://api.openai.com/v1/chat/completions',
-      headers: { Authorization: `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
-    };
-  }
-
-  return null;
-}
-
-// ── Build request body per backend ────────────────────────────────────────────
-function buildBody(config, text) {
-  if (config.type === 'anthropic') {
-    return {
-      model: import.meta.env.VITE_ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: `I am building my professional portfolio on Yana and have uploaded my own resume. Please extract and structure my professional information from it so I can showcase my career.\n\nMy resume:\n\n${text.slice(0, 14000)}`,
-      }],
-    };
-  }
-  const body = {
-    messages: MESSAGES(text),
-    temperature: 0.2,
-    response_format: { type: 'json_object' },
+  const key = manualKey || import.meta.env.VITE_ANTHROPIC_API_KEY;
+  if (!key) return null;
+  return {
+    url: 'https://api.anthropic.com/v1/messages',
+    headers: {
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json',
+    },
   };
-  if (config.type === 'openai') body.model = 'gpt-4o';
-  return body;
 }
 
-// ── Extract text content from response per backend ────────────────────────────
-function extractContent(config, result) {
-  if (config.type === 'anthropic') {
-    // Find the first text-type block (Claude may return multiple content blocks)
-    const block = result.content?.find(b => b.type === 'text');
-    return block?.text ?? '';
-  }
-  return result.choices?.[0]?.message?.content ?? '';
+function buildBody(text) {
+  return {
+    model: import.meta.env.VITE_ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT,
+    messages: [{
+      role: 'user',
+      content: `I am building my professional portfolio on Yana and have uploaded my own resume. Please extract and structure my professional information from it so I can showcase my career.\n\nMy resume:\n\n${text.slice(0, 14000)}`,
+    }],
+  };
+}
+
+function extractContent(result) {
+  const block = result.content?.find(b => b.type === 'text');
+  return block?.text ?? '';
 }
 
 // ── Robustly extract a JSON object from a model response string ───────────────
@@ -291,11 +245,6 @@ Rules:
 - skills: 6-15 skill strings as a flat array
 - Empty missing fields with empty string or empty array`;
 
-// OpenAI/Azure use messages array with system role; Claude uses separate system field
-const MESSAGES = (text) => [
-  { role: 'system', content: SYSTEM_PROMPT },
-  { role: 'user',   content: `Parse this resume:\n\n${text.slice(0, 14000)}` },
-];
 
 // ── Primary parser — sequential section reveal ────────────────────────────────
 // Calls onSection(name, data) for each section with staggered delays so the
@@ -307,27 +256,25 @@ export async function parseResumeStreaming(file, manualApiKey, { onProgress, onS
     if (!text.trim()) throw new Error('Could not extract text from this PDF. It may be a scanned image — try a text-based PDF.');
 
     const config = resolveConfig(manualApiKey);
-    if (!config) throw new Error('No AI API key configured. Add VITE_ANTHROPIC_API_KEY to your .env.local');
+    if (!config) throw new Error('No API key configured. Add VITE_ANTHROPIC_API_KEY to your .env.local');
 
     onProgress?.('streaming');
 
     const res = await fetch(config.url, {
       method: 'POST',
       headers: config.headers,
-      body: JSON.stringify(buildBody(config, text)),
+      body: JSON.stringify(buildBody(text)),
     });
 
     if (!res.ok) throw new Error(await extractError(res));
 
     const result = await res.json();
-    console.log('[Yana] full API result:', JSON.stringify(result).slice(0, 800));
 
     if (result.stop_reason === 'refusal' || (Array.isArray(result.content) && result.content.length === 0)) {
-      throw new Error('The AI declined to process this document. Try a different PDF or paste your resume text.');
+      throw new Error('Claude declined to process this document. Try a different PDF or paste your resume text.');
     }
 
-    const content = extractContent(config, result);
-    console.log('[Yana] extracted content:', content.slice(0, 400));
+    const content = extractContent(result);
 
     const raw = parseJsonFromResponse(content);
     if (!raw) {
@@ -370,20 +317,20 @@ export async function parseResumeWithAI(file, manualApiKey, onProgress) {
   if (!text.trim()) throw new Error('Could not extract text from this PDF.');
 
   const config = resolveConfig(manualApiKey);
-  if (!config) throw new Error('No AI API key configured.');
+  if (!config) throw new Error('No API key configured.');
 
   onProgress?.('analyzing');
 
   const res = await fetch(config.url, {
     method: 'POST',
     headers: config.headers,
-    body: JSON.stringify(buildBody(config, text)),
+    body: JSON.stringify(buildBody(text)),
   });
 
   if (!res.ok) throw new Error(await extractError(res));
 
   const result = await res.json();
-  const content = extractContent(config, result);
+  const content = extractContent(result);
 
   const raw = parseJsonFromResponse(content);
   if (!raw) throw new Error('AI returned invalid JSON — please try again.');
@@ -392,8 +339,4 @@ export async function parseResumeWithAI(file, manualApiKey, onProgress) {
   return normalizeResponse(raw);
 }
 
-export const hasAIConfig = !!(
-  import.meta.env.VITE_ANTHROPIC_API_KEY ||
-  import.meta.env.VITE_AZURE_OPENAI_API_KEY ||
-  import.meta.env.VITE_OPENAI_API_KEY
-);
+export const hasAIConfig = !!import.meta.env.VITE_ANTHROPIC_API_KEY;
