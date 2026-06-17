@@ -1,0 +1,35 @@
+export const metrics = [
+  {
+    id: 1,
+    value: 148,
+    suffix: '%',
+    label: 'Quota Attainment',
+    description: 'Consistently exceeded annual sales targets',
+    icon: 'target',
+  },
+  {
+    id: 2,
+    value: 3.2,
+    prefix: '$',
+    suffix: 'M',
+    label: 'Revenue Generated',
+    description: 'Total closed revenue in 2024',
+    icon: 'dollar',
+  },
+  {
+    id: 3,
+    value: 94,
+    suffix: '+',
+    label: 'Clients Acquired',
+    description: 'New logos brought in over 3 years',
+    icon: 'users',
+  },
+  {
+    id: 4,
+    value: 97,
+    suffix: '%',
+    label: 'Retention Rate',
+    description: 'Year-over-year client retention',
+    icon: 'heart',
+  },
+];

@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-body text-gray-700 bg-blush-50;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .section-title {
+    @apply text-4xl md:text-5xl font-display font-light text-gray-800 mb-2;
+  }
+  .section-subtitle {
+    @apply text-blush-500 font-body font-medium tracking-widest text-xs uppercase mb-6;
+  }
+  .btn-primary {
+    @apply inline-block bg-blush-500 hover:bg-blush-600 text-white font-body font-semibold text-sm px-7 py-3 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5;
+  }
+  .btn-outline {
+    @apply inline-block border border-blush-400 text-blush-600 hover:bg-blush-100 font-body font-semibold text-sm px-7 py-3 rounded-full transition-all duration-300;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6;
+  }
+}
+
+/* Admin utility classes */
+@layer components {
+  .admin-label {
+    @apply font-body text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5;
+  }
+  .admin-input {
+    @apply w-full font-body text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blush-300 focus:border-transparent transition-all;
+  }
+  .admin-card {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-sm p-5;
+  }
+  .admin-section-title {
+    @apply font-display text-3xl font-light text-gray-800;
+  }
+  .admin-section-desc {
+    @apply font-body text-sm text-gray-400 mt-1;
+  }
+  .admin-btn-sm {
+    @apply font-body text-xs font-semibold text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors;
+  }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #fff1f5; }
+::-webkit-scrollbar-thumb { background: #fda4c0; border-radius: 9999px; }
