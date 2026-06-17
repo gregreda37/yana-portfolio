@@ -256,8 +256,6 @@ export default function ImportResume() {
   const [form, setForm] = useState(null);
   const [newSkill, setNewSkill] = useState('');
 
-  const inputRef = useRef(null);
-
   const acceptFile = (f) => {
     if (!f) return;
     if (f.type !== 'application/pdf') { setError('Please upload a PDF file.'); return; }
@@ -383,19 +381,19 @@ export default function ImportResume() {
           </motion.div>
 
 
-          {/* Drop zone */}
-          <div
+          {/* Drop zone — using <label> so clicking activates the file input natively
+              without giving the container a browser focus ring (which looks blurry) */}
+          <label
             onDragOver={e => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
-            onClick={() => inputRef.current?.click()}
-            className={`rounded-3xl border-2 py-14 px-8 text-center cursor-pointer transition-all duration-200 mb-5 ${
+            className={`rounded-3xl border-2 py-14 px-8 text-center cursor-pointer transition-all duration-200 mb-5 block outline-none ${
               dragging ? 'border-blush-400 bg-blush-50/80 shadow-inner' :
               file     ? 'border-green-300 bg-green-50/40 shadow-inner' :
                          'border-gray-200 bg-white hover:border-blush-300 hover:bg-blush-50/30 hover:shadow-sm'
             }`}
           >
-            <input ref={inputRef} type="file" accept=".pdf" className="sr-only" onChange={e => acceptFile(e.target.files[0])} />
+            <input type="file" accept=".pdf" className="sr-only" onChange={e => acceptFile(e.target.files[0])} />
             {file ? (
               <div className="flex flex-col items-center gap-4">
                 <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-green-50 to-green-100 border border-green-200 flex items-center justify-center shadow-sm">
@@ -417,7 +415,7 @@ export default function ImportResume() {
                 </div>
               </div>
             )}
-          </div>
+          </label>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-5 flex gap-3">
@@ -485,13 +483,6 @@ export default function ImportResume() {
               {/* Step progress */}
               <StepBar step={workStep} />
 
-              {/* Cancel */}
-              <button
-                onClick={() => { cancelledRef.current = true; setWorkError(''); setPhase('upload'); }}
-                className="font-body text-xs text-gray-300 hover:text-gray-500 transition-colors mt-5"
-              >
-                Cancel
-              </button>
             </div>
           )}
 

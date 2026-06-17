@@ -254,6 +254,10 @@ Rules:
 // Calls onSection(name, data) for each section with staggered delays so the
 // UI can animate each one in as if it arrived from a stream.
 export async function parseResumeStreaming(file, { onProgress, onSection, onError, onComplete } = {}) {
+  if (!import.meta.env.VITE_ANTHROPIC_API_KEY) {
+    onError?.('Resume import is not configured — the API key is missing. Please contact support.');
+    return;
+  }
   try {
     onProgress?.('reading');
     const text = await extractPdfText(file);
