@@ -4,6 +4,30 @@ import { useAuth } from '../contexts/AuthContext';
 import { uploadAsset } from '../firebase/storage';
 import { FiUpload } from 'react-icons/fi';
 
+// Defined at module level — stable reference, never causes remount on keystroke
+function Field({ label, type = 'text', rows, value, onChange }) {
+  return (
+    <div>
+      <label className="admin-label">{label}</label>
+      {rows ? (
+        <textarea
+          rows={rows}
+          value={value ?? ''}
+          onChange={onChange}
+          className="admin-input resize-none"
+        />
+      ) : (
+        <input
+          type={type}
+          value={value ?? ''}
+          onChange={onChange}
+          className="admin-input"
+        />
+      )}
+    </div>
+  );
+}
+
 export default function EditProfile({ onToast }) {
   const { profile, saveSection } = useData();
   const { user } = useAuth();
@@ -38,27 +62,6 @@ export default function EditProfile({ onToast }) {
       setSaving(false);
     }
   };
-
-  const Field = ({ label, name, type = 'text', rows }) => (
-    <div>
-      <label className="admin-label">{label}</label>
-      {rows ? (
-        <textarea
-          rows={rows}
-          value={form[name] ?? ''}
-          onChange={e => set(name, e.target.value)}
-          className="admin-input resize-none"
-        />
-      ) : (
-        <input
-          type={type}
-          value={form[name] ?? ''}
-          onChange={e => set(name, e.target.value)}
-          className="admin-input"
-        />
-      )}
-    </div>
-  );
 
   return (
     <div>
@@ -102,21 +105,21 @@ export default function EditProfile({ onToast }) {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5 mt-4">
-        <Field label="Display Name" name="name" />
-        <Field label="Title / Tagline" name="title" />
+        <Field label="Display Name"       value={form.name}             onChange={e => set('name', e.target.value)} />
+        <Field label="Title / Tagline"    value={form.title}            onChange={e => set('title', e.target.value)} />
         <div className="sm:col-span-2">
-          <Field label="Bio — Paragraph 1" name="bio1" rows={3} />
+          <Field label="Bio — Paragraph 1" rows={3} value={form.bio1}   onChange={e => set('bio1', e.target.value)} />
         </div>
         <div className="sm:col-span-2">
-          <Field label="Bio — Paragraph 2" name="bio2" rows={3} />
+          <Field label="Bio — Paragraph 2" rows={3} value={form.bio2}   onChange={e => set('bio2', e.target.value)} />
         </div>
-        <Field label="Location" name="location" />
-        <Field label="Email" name="email" type="email" />
+        <Field label="Location"           value={form.location}         onChange={e => set('location', e.target.value)} />
+        <Field label="Email"   type="email" value={form.email}          onChange={e => set('email', e.target.value)} />
         <div className="sm:col-span-2">
-          <Field label="LinkedIn URL" name="linkedin" />
+          <Field label="LinkedIn URL"     value={form.linkedin}         onChange={e => set('linkedin', e.target.value)} />
         </div>
         <div className="sm:col-span-2">
-          <Field label="Availability Note (sidebar card)" name="availabilityNote" />
+          <Field label="Availability Note (sidebar card)" value={form.availabilityNote} onChange={e => set('availabilityNote', e.target.value)} />
         </div>
       </div>
 

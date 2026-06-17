@@ -7,6 +7,7 @@ import { experience as defaultJobs, education as defaultEducation, skills as def
 import { testimonials as defaultTestimonials } from '../data/testimonials';
 import { blogPosts as defaultBlog } from '../data/blog';
 import { recentReads as defaultBooks } from '../data/books';
+import { pageantData as defaultPageant } from '../data/pageant';
 
 const defaultProfile = {
   name: 'Your Name',
@@ -28,6 +29,7 @@ export const DEFAULTS = {
   testimonials: { items: defaultTestimonials },
   blog: { posts: defaultBlog },
   books: { items: defaultBooks },
+  pageant: defaultPageant,
   settings: {
     accentColor: 'blush',
     visible: {

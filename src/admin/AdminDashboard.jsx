@@ -9,9 +9,10 @@ import EditTestimonials from './EditTestimonials';
 import EditBlog from './EditBlog';
 import EditBooks from './EditBooks';
 import EditSettings from './EditSettings';
+import EditPageant from './EditPageant';
 import {
   FiUser, FiTrendingUp, FiBriefcase, FiHeart,
-  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings,
+  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar,
 } from 'react-icons/fi';
 
 const NAV = [
@@ -22,6 +23,7 @@ const NAV = [
   { key: 'testimonials', label: 'Testimonials',       icon: FiMessageSquare },
   { key: 'blog',         label: 'Blog Posts',         icon: FiEdit },
   { key: 'books',        label: 'Recent Reads',       icon: FiBook },
+  { key: 'pageant',      label: 'Pageant & Titles',   icon: FiStar },
   { key: 'settings',     label: 'Appearance',         icon: FiSettings },
 ];
 
@@ -33,6 +35,7 @@ const EDITORS = {
   testimonials: EditTestimonials,
   blog:         EditBlog,
   books:        EditBooks,
+  pageant:      EditPageant,
   settings:     EditSettings,
 };
 
