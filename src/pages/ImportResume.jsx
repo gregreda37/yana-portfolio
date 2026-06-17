@@ -185,7 +185,7 @@ const removeSkill = (setForm, sIdx) =>
 // ── Main component ────────────────────────────────────────────────────────────
 export default function ImportResume() {
   const navigate = useNavigate();
-  const { saveSection, profile: existingProfile, firestoreLoaded } = useData();
+  const { saveSection, profile: existingProfile, firestoreLoaded, firestoreError } = useData();
 
   // phase: upload | working | review | saving
   const [phase, setPhase] = useState('upload');
@@ -207,6 +207,8 @@ export default function ImportResume() {
 
   // Track what's been detected during streaming to avoid re-setting in onComplete
   const detectedRef = useRef({ profile: false, metrics: false, experience: false });
+  // Prevents the delayed onComplete timers from firing if the user cancelled
+  const cancelledRef = useRef(false);
 
   // Reveal profile fields one by one when profile section arrives
   useEffect(() => {
@@ -271,6 +273,7 @@ export default function ImportResume() {
 
   const startAnalysis = async () => {
     if (!file) return;
+    cancelledRef.current = false;
     setError('');
     setWorkError('');
     setPhase('working');
@@ -310,8 +313,10 @@ export default function ImportResume() {
         if (!detectedRef.current.metrics)    setLiveMetrics(parsed.metrics);
         if (!detectedRef.current.experience) setLiveExperience(parsed.experience);
 
-        // Wait for final reveal animations, fade out, then switch to review
+        // Wait for final reveal animations, fade out, then switch to review.
+        // cancelledRef guards against this firing after the user pressed Cancel.
         setTimeout(() => {
+          if (cancelledRef.current) return;
           try {
             setForm(JSON.parse(JSON.stringify(parsed)));
           } catch (e) {
@@ -321,6 +326,7 @@ export default function ImportResume() {
           }
           setFading(true);
           setTimeout(() => {
+            if (cancelledRef.current) return;
             setPhase('review');
             setFading(false);
           }, 550);
@@ -455,7 +461,7 @@ export default function ImportResume() {
               <p className="font-body text-sm text-red-600 mb-1 font-semibold">Something went wrong</p>
               <p className="font-body text-sm text-red-500 mb-5 leading-relaxed">{workError}</p>
               <button
-                onClick={() => { setWorkError(''); setPhase('upload'); }}
+                onClick={() => { cancelledRef.current = true; setWorkError(''); setPhase('upload'); }}
                 className="font-body text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl px-6 py-2.5 hover:bg-gray-50 transition-colors shadow-sm"
               >
                 ← Try again
@@ -481,7 +487,7 @@ export default function ImportResume() {
 
               {/* Cancel */}
               <button
-                onClick={() => { setWorkError(''); setPhase('upload'); }}
+                onClick={() => { cancelledRef.current = true; setWorkError(''); setPhase('upload'); }}
                 className="font-body text-xs text-gray-300 hover:text-gray-500 transition-colors mt-5"
               >
                 Cancel
@@ -788,12 +794,18 @@ export default function ImportResume() {
       {/* Sticky confirm bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-gray-100 px-4 py-4 flex items-center gap-4 max-w-2xl mx-auto z-20">
         <div className="flex-1">
-          <p className="font-body text-xs text-gray-400">Everything looks accurate?</p>
-          <p className="font-body text-xs text-gray-300">You can edit any section later in the admin.</p>
+          {firestoreError ? (
+            <p className="font-body text-xs text-red-400 font-semibold">Connection error — please refresh the page.</p>
+          ) : (
+            <>
+              <p className="font-body text-xs text-gray-400">Everything looks accurate?</p>
+              <p className="font-body text-xs text-gray-300">You can edit any section later in the admin.</p>
+            </>
+          )}
         </div>
         <button
           onClick={apply}
-          disabled={!firestoreLoaded}
+          disabled={!firestoreLoaded || !!firestoreError}
           className="btn-primary flex items-center gap-2 disabled:opacity-60 shrink-0"
         >
           Apply to Portfolio <FiArrowRight size={14} />

@@ -247,8 +247,9 @@ export default function SetupUsername() {
 
             <ProgressDots step={step} />
 
-            {/* Step content */}
-            <div className="overflow-hidden">
+            {/* Step content — overflow-hidden clips the slide animation;
+                the -m/p trick gives button shadows & focus rings 8px of room */}
+            <div className="overflow-hidden -mx-2 px-2 -my-1 py-1">
               <AnimatePresence mode="wait" custom={direction}>
 
                 {/* ── Step 0: Claim URL ──────────────────────────────────── */}
