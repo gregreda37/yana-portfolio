@@ -1,7 +1,17 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { FiDownload, FiLinkedin, FiMail, FiHeart } from 'react-icons/fi';
+import { FiDownload, FiLinkedin, FiMail, FiHeart, FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
+import { SiTiktok } from 'react-icons/si';
 import { useData } from '../contexts/DataContext';
+
+const SOCIAL_ICONS = [
+  { key: 'linkedin',  Icon: FiLinkedin,  label: 'LinkedIn' },
+  { key: 'instagram', Icon: FiInstagram, label: 'Instagram' },
+  { key: 'facebook',  Icon: FiFacebook,  label: 'Facebook' },
+  { key: 'tiktok',    Icon: SiTiktok,    label: 'TikTok' },
+  { key: 'twitter',   Icon: FiTwitter,   label: 'Twitter / X' },
+  { key: 'youtube',   Icon: FiYoutube,   label: 'YouTube' },
+];
 
 export default function About() {
   const { profile, experience, healthcare, settings } = useData();
@@ -74,13 +84,17 @@ export default function About() {
               </a>
             </div>
 
-            <div className="flex gap-4 mt-6">
-              <a href={profile.linkedin} target="_blank" rel="noreferrer" className="transition-colors" style={{ color: 'var(--accent-400)' }} aria-label="LinkedIn">
-                <FiLinkedin size={20} />
-              </a>
-              <a href={`mailto:${profile.email}`} className="transition-colors" style={{ color: 'var(--accent-400)' }} aria-label="Email">
-                <FiMail size={20} />
-              </a>
+            <div className="flex flex-wrap gap-4 mt-6">
+              {SOCIAL_ICONS.filter(s => profile[s.key]).map(({ key, Icon, label }) => (
+                <a key={key} href={profile[key]} target="_blank" rel="noreferrer" className="transition-colors" style={{ color: 'var(--accent-400)' }} aria-label={label}>
+                  <Icon size={20} />
+                </a>
+              ))}
+              {profile.email && (
+                <a href={`mailto:${profile.email}`} className="transition-colors" style={{ color: 'var(--accent-400)' }} aria-label="Email">
+                  <FiMail size={20} />
+                </a>
+              )}
             </div>
           </motion.div>
         </div>

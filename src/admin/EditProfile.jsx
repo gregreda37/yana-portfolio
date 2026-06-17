@@ -4,6 +4,37 @@ import { useAuth } from '../contexts/AuthContext';
 import { uploadAsset } from '../firebase/storage';
 import { FiUpload } from 'react-icons/fi';
 
+const SOCIALS = [
+  { key: 'linkedin',  label: 'LinkedIn',    base: 'https://linkedin.com/in/', prefix: 'linkedin.com/in/' },
+  { key: 'instagram', label: 'Instagram',   base: 'https://instagram.com/',   prefix: 'instagram.com/' },
+  { key: 'facebook',  label: 'Facebook',    base: 'https://facebook.com/',    prefix: 'facebook.com/' },
+  { key: 'tiktok',    label: 'TikTok',      base: 'https://tiktok.com/@',     prefix: 'tiktok.com/@' },
+  { key: 'twitter',   label: 'Twitter / X', base: 'https://x.com/',           prefix: 'x.com/' },
+  { key: 'youtube',   label: 'YouTube',     base: 'https://youtube.com/@',    prefix: 'youtube.com/@' },
+];
+
+// Shows a static URL prefix — user types just their handle
+function SocialField({ label, base, prefix, value, onChange }) {
+  const handle = value?.startsWith(base) ? value.slice(base.length) : (value ?? '');
+  return (
+    <div>
+      <label className="admin-label">{label}</label>
+      <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blush-200 bg-white">
+        <span className="font-body text-xs text-gray-400 px-3 py-2.5 bg-gray-50 border-r border-gray-200 whitespace-nowrap shrink-0 select-none">
+          {prefix}
+        </span>
+        <input
+          type="text"
+          value={handle}
+          onChange={e => onChange(e.target.value ? base + e.target.value : '')}
+          placeholder="yourhandle"
+          className="flex-1 font-body text-sm px-3 py-2.5 focus:outline-none bg-white min-w-0"
+        />
+      </div>
+    </div>
+  );
+}
+
 // Defined at module level — stable reference, never causes remount on keystroke
 function Field({ label, type = 'text', rows, value, onChange }) {
   return (
@@ -116,10 +147,24 @@ export default function EditProfile({ onToast }) {
         <Field label="Location"           value={form.location}         onChange={e => set('location', e.target.value)} />
         <Field label="Email"   type="email" value={form.email}          onChange={e => set('email', e.target.value)} />
         <div className="sm:col-span-2">
-          <Field label="LinkedIn URL"     value={form.linkedin}         onChange={e => set('linkedin', e.target.value)} />
-        </div>
-        <div className="sm:col-span-2">
           <Field label="Availability Note (sidebar card)" value={form.availabilityNote} onChange={e => set('availabilityNote', e.target.value)} />
+        </div>
+      </div>
+
+      {/* Social Links */}
+      <div className="mt-6">
+        <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Social Links — fill in whichever apply</p>
+        <div className="grid sm:grid-cols-2 gap-5">
+          {SOCIALS.map(({ key, label, base, prefix }) => (
+            <SocialField
+              key={key}
+              label={label}
+              base={base}
+              prefix={prefix}
+              value={form[key]}
+              onChange={val => set(key, val)}
+            />
+          ))}
         </div>
       </div>
 

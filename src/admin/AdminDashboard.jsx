@@ -66,7 +66,7 @@ export default function AdminDashboard() {
           <button className="md:hidden text-gray-500 p-1" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">
             <span className="block w-5 h-0.5 bg-current mb-1" /><span className="block w-5 h-0.5 bg-current mb-1" /><span className="block w-5 h-0.5 bg-current" />
           </button>
-          <span className="font-display text-xl text-blush-500 font-light">Portfolio</span>
+          <span className="font-display text-xl text-blush-500 font-light">Yana</span>
           <span className="font-body text-xs text-gray-400 hidden sm:block">· Admin</span>
         </div>
         <div className="flex items-center gap-3">

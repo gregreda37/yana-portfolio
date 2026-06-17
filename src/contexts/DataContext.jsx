@@ -17,6 +17,11 @@ const defaultProfile = {
   location: 'New York, NY',
   email: '',
   linkedin: '',
+  instagram: '',
+  facebook: '',
+  tiktok: '',
+  twitter: '',
+  youtube: '',
   availabilityNote: 'New opportunities in enterprise or mid-market SaaS sales',
   photo: '',
 };

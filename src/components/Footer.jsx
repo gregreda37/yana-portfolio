@@ -1,5 +1,15 @@
-import { FiLinkedin, FiMail, FiHeart } from 'react-icons/fi';
+import { FiLinkedin, FiMail, FiHeart, FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
+import { SiTiktok } from 'react-icons/si';
 import { useData } from '../contexts/DataContext';
+
+const SOCIAL_ICONS = [
+  { key: 'linkedin',  Icon: FiLinkedin },
+  { key: 'instagram', Icon: FiInstagram },
+  { key: 'facebook',  Icon: FiFacebook },
+  { key: 'tiktok',    Icon: SiTiktok },
+  { key: 'twitter',   Icon: FiTwitter },
+  { key: 'youtube',   Icon: FiYoutube },
+];
 
 const links = [
   { label: 'About', href: '#about' },
@@ -31,13 +41,17 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <div className="flex gap-4">
-            <a href={profile.linkedin} target="_blank" rel="noreferrer" className="hover:text-blush-400 transition-colors" aria-label="LinkedIn">
-              <FiLinkedin size={18} />
-            </a>
-            <a href={`mailto:${profile.email}`} className="hover:text-blush-400 transition-colors" aria-label="Email">
-              <FiMail size={18} />
-            </a>
+          <div className="flex flex-wrap gap-4">
+            {SOCIAL_ICONS.filter(s => profile[s.key]).map(({ key, Icon }) => (
+              <a key={key} href={profile[key]} target="_blank" rel="noreferrer" className="hover:text-blush-400 transition-colors" aria-label={key}>
+                <Icon size={18} />
+              </a>
+            ))}
+            {profile.email && (
+              <a href={`mailto:${profile.email}`} className="hover:text-blush-400 transition-colors" aria-label="Email">
+                <FiMail size={18} />
+              </a>
+            )}
           </div>
         </div>
 

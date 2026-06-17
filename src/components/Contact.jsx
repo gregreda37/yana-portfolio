@@ -1,7 +1,17 @@
 import { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { FiMail, FiLinkedin, FiSend, FiMapPin } from 'react-icons/fi';
+import { FiMail, FiLinkedin, FiSend, FiMapPin, FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
+import { SiTiktok } from 'react-icons/si';
 import { useData } from '../contexts/DataContext';
+
+const SOCIAL_ICONS = [
+  { key: 'linkedin',  Icon: FiLinkedin,  label: 'LinkedIn',    bg: 'bg-lavender-100', color: 'text-lavender-500' },
+  { key: 'instagram', Icon: FiInstagram, label: 'Instagram',   bg: 'bg-pink-100',     color: 'text-pink-500' },
+  { key: 'facebook',  Icon: FiFacebook,  label: 'Facebook',    bg: 'bg-blue-100',     color: 'text-blue-500' },
+  { key: 'tiktok',    Icon: SiTiktok,    label: 'TikTok',      bg: 'bg-gray-100',     color: 'text-gray-700' },
+  { key: 'twitter',   Icon: FiTwitter,   label: 'Twitter / X', bg: 'bg-sky-100',      color: 'text-sky-500' },
+  { key: 'youtube',   Icon: FiYoutube,   label: 'YouTube',     bg: 'bg-red-100',      color: 'text-red-500' },
+];
 
 export default function Contact() {
   const { profile } = useData();
@@ -49,17 +59,19 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="card flex items-start gap-4">
-              <div className="w-10 h-10 bg-lavender-100 rounded-xl flex items-center justify-center shrink-0">
-                <FiLinkedin className="text-lavender-500" size={16} />
+            {SOCIAL_ICONS.filter(s => profile[s.key]).map(({ key, Icon, label, bg, color }) => (
+              <div key={key} className="card flex items-start gap-4">
+                <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center shrink-0`}>
+                  <Icon className={color} size={16} />
+                </div>
+                <div>
+                  <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">{label}</p>
+                  <a href={profile[key]} target="_blank" rel="noreferrer" className="font-body text-sm text-gray-700 hover:text-blush-500 transition-colors break-all">
+                    {profile[key]?.replace('https://', '').replace('www.', '')}
+                  </a>
+                </div>
               </div>
-              <div>
-                <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">LinkedIn</p>
-                <a href={profile.linkedin} target="_blank" rel="noreferrer" className="font-body text-sm text-gray-700 hover:text-blush-500 transition-colors">
-                  {profile.linkedin?.replace('https://', '')}
-                </a>
-              </div>
-            </div>
+            ))}
 
             <div className="card flex items-start gap-4">
               <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center shrink-0">
