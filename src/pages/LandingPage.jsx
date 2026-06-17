@@ -5,7 +5,6 @@ import {
   FiArrowRight, FiTrendingUp, FiMessageSquare,
   FiLayout, FiEdit3, FiGlobe, FiStar, FiCheck,
 } from 'react-icons/fi';
-import logoUrl from '../assets/yvb-logo-original.svg';
 
 /* ── Scroll reveal wrapper ──────────────────────────────────────────────── */
 function Reveal({ children, delay = 0, className = '' }) {
@@ -139,22 +138,6 @@ function Hero() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
 
       <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-        {/* Logo — replaces eyebrow badge */}
-        <motion.div
-          initial={{ y: -20, opacity: 0, scale: 0.9 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 60, damping: 14, delay: 0.1 }}
-          className="mb-8"
-        >
-          <motion.img
-            src={logoUrl}
-            alt="Yana"
-            className="w-28 sm:w-32 mx-auto rounded-xl shadow-lg"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1.0 }}
-          />
-        </motion.div>
-
         {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 28 }}
