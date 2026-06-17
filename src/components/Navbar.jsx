@@ -28,7 +28,7 @@ export default function Navbar() {
       scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
     }`}>
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
-        <a href="#hero" className="font-display text-2xl font-medium text-blush-600 tracking-wide">
+        <a href="#hero" className="font-display text-2xl font-medium text-accent-600 tracking-wide">
           {fullName}
         </a>
 
@@ -38,7 +38,7 @@ export default function Navbar() {
             <li key={l.href}>
               <a
                 href={l.href}
-                className="font-body text-sm font-medium text-gray-600 hover:text-blush-500 transition-colors duration-200"
+                className="font-body text-sm font-medium text-gray-600 hover:text-accent-500 transition-colors duration-200"
               >
                 {l.label}
               </a>
@@ -62,14 +62,14 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-blush-100 px-6 py-4">
+        <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-accent-100 px-6 py-4">
           <ul className="flex flex-col gap-4">
             {links.map(l => (
               <li key={l.href}>
                 <a
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="font-body text-sm font-medium text-gray-700 hover:text-blush-500"
+                  className="font-body text-sm font-medium text-gray-700 hover:text-accent-500"
                 >
                   {l.label}
                 </a>

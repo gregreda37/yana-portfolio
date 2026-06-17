@@ -112,7 +112,7 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
   }, [uid, readOnly]);
 
   return (
-    <DataContext.Provider value={{ ...data, firestoreLoaded, saveSection }}>
+    <DataContext.Provider value={{ ...data, uid, firestoreLoaded, saveSection }}>
       {children}
     </DataContext.Provider>
   );

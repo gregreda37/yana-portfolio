@@ -10,9 +10,10 @@ import EditBlog from './EditBlog';
 import EditBooks from './EditBooks';
 import EditSettings from './EditSettings';
 import EditPageant from './EditPageant';
+import EditResumeRequests from './EditResumeRequests';
 import {
   FiUser, FiTrendingUp, FiBriefcase, FiHeart,
-  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar,
+  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar, FiInbox,
 } from 'react-icons/fi';
 
 const NAV = [
@@ -25,6 +26,7 @@ const NAV = [
   { key: 'books',        label: 'Recent Reads',       icon: FiBook },
   { key: 'pageant',      label: 'Pageant & Titles',   icon: FiStar },
   { key: 'settings',     label: 'Appearance',         icon: FiSettings },
+  { key: 'inbox',        label: 'Resume Requests',    icon: FiInbox },
 ];
 
 const EDITORS = {
@@ -37,6 +39,7 @@ const EDITORS = {
   books:        EditBooks,
   pageant:      EditPageant,
   settings:     EditSettings,
+  inbox:        EditResumeRequests,
 };
 
 export default function AdminDashboard() {

@@ -26,11 +26,17 @@ service cloud.firestore {
 
       // ── Portfolio sections (profile, metrics, experience, …) ──────────────
       match /portfolio/{section} {
-        // Public read — portfolio pages are open to everyone
         allow read: if true;
-
-        // Only the authenticated owner can write their own sections
         allow write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // ── Resume requests from portfolio visitors ────────────────────────────
+      match /resumeRequests/{requestId} {
+        // Anyone can submit a request (public portfolio visitors, no auth required)
+        allow create: if request.resource.data.status == 'pending';
+
+        // Only the portfolio owner can read, update, or delete requests
+        allow read, update, delete: if request.auth != null && request.auth.uid == uid;
       }
     }
   }

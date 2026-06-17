@@ -36,7 +36,7 @@ export default function Footer() {
             <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               {links.map(l => (
                 <li key={l.href}>
-                  <a href={l.href} className="font-body text-sm hover:text-blush-400 transition-colors">{l.label}</a>
+                  <a href={l.href} className="font-body text-sm hover:text-accent-400 transition-colors">{l.label}</a>
                 </li>
               ))}
             </ul>
@@ -44,12 +44,12 @@ export default function Footer() {
 
           <div className="flex flex-wrap gap-4">
             {SOCIAL_ICONS.filter(s => profile[s.key]).map(({ key, Icon }) => (
-              <a key={key} href={profile[key]} target="_blank" rel="noreferrer" className="hover:text-blush-400 transition-colors" aria-label={key}>
+              <a key={key} href={profile[key]} target="_blank" rel="noreferrer" className="hover:text-accent-400 transition-colors" aria-label={key}>
                 <Icon size={18} />
               </a>
             ))}
             {profile.email && (
-              <a href={`mailto:${profile.email}`} className="hover:text-blush-400 transition-colors" aria-label="Email">
+              <a href={`mailto:${profile.email}`} className="hover:text-accent-400 transition-colors" aria-label="Email">
                 <FiMail size={18} />
               </a>
             )}
@@ -58,9 +58,9 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-10 pt-8 flex items-center justify-between">
           <p className="font-body text-xs text-gray-600 flex items-center gap-1.5">
-            Built with <a href="/" className="text-blush-400 hover:text-blush-300 transition-colors font-semibold">Yana</a> <FiHeart size={11} className="text-blush-400" /> · © {new Date().getFullYear()} {fullName}. All rights reserved.
+            Built with <a href="/" className="text-accent-400 hover:text-accent-300 transition-colors font-semibold">Yana</a> <FiHeart size={11} className="text-accent-400" /> · © {new Date().getFullYear()} {fullName}. All rights reserved.
           </p>
-          <a href="/admin" className="font-body text-xs text-gray-700 hover:text-blush-400 transition-colors">
+          <a href="/admin" className="font-body text-xs text-gray-700 hover:text-accent-400 transition-colors">
             Admin
           </a>
         </div>

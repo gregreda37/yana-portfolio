@@ -35,10 +35,10 @@ export default function BlogModal({ post, onClose }) {
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="px-8 pt-8 pb-6 border-b border-blush-100 shrink-0">
+          <div className="px-8 pt-8 pb-6 border-b border-accent-100 shrink-0">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="font-body text-xs font-semibold text-blush-500 uppercase tracking-widest">{post.category}</span>
+                <span className="font-body text-xs font-semibold text-accent-500 uppercase tracking-widest">{post.category}</span>
                 <h2 className="font-display text-3xl font-light text-gray-800 mt-1 leading-tight">{post.title}</h2>
                 <div className="flex items-center gap-4 mt-3 text-xs text-gray-400 font-body">
                   <span className="flex items-center gap-1"><FiCalendar size={11} /> {post.date}</span>
@@ -47,7 +47,7 @@ export default function BlogModal({ post, onClose }) {
               </div>
               <button
                 onClick={onClose}
-                className="shrink-0 w-9 h-9 rounded-full bg-blush-50 hover:bg-blush-100 flex items-center justify-center text-blush-400 transition-colors"
+                className="shrink-0 w-9 h-9 rounded-full bg-accent-50 hover:bg-accent-100 flex items-center justify-center text-accent-400 transition-colors"
                 aria-label="Close"
               >
                 <FiX size={16} />
@@ -75,9 +75,9 @@ export default function BlogModal({ post, onClose }) {
             </div>
 
             {/* Tags */}
-            <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-blush-100">
+            <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-accent-100">
               {post.tags.map(tag => (
-                <span key={tag} className="font-body text-xs text-blush-500 bg-blush-50 border border-blush-200 px-3 py-1 rounded-full flex items-center gap-1">
+                <span key={tag} className="font-body text-xs text-accent-500 bg-accent-50 border border-accent-200 px-3 py-1 rounded-full flex items-center gap-1">
                   <FiTag size={10} /> {tag}
                 </span>
               ))}

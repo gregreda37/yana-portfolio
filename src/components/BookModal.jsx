@@ -6,7 +6,7 @@ function Stars({ count }) {
   return (
     <div className="flex gap-0.5">
       {[...Array(5)].map((_, i) => (
-        <span key={i} className={i < count ? 'text-blush-400' : 'text-gray-200'}>★</span>
+        <span key={i} className={i < count ? 'text-accent-400' : 'text-gray-200'}>★</span>
       ))}
     </div>
   );
@@ -67,7 +67,7 @@ export default function BookModal({ book, onClose }) {
 
           {/* Body */}
           <div className="px-8 py-6 overflow-y-auto">
-            <p className="font-body text-gray-500 text-sm leading-relaxed mb-8 italic border-l-2 border-blush-200 pl-4">
+            <p className="font-body text-gray-500 text-sm leading-relaxed mb-8 italic border-l-2 border-accent-200 pl-4">
               {book.synopsis}
             </p>
 
@@ -75,8 +75,8 @@ export default function BookModal({ book, onClose }) {
             <div className="space-y-5 mb-8">
               {book.takeaways.map((t, i) => (
                 <div key={i} className="flex gap-4">
-                  <div className="shrink-0 w-6 h-6 rounded-full bg-blush-100 flex items-center justify-center mt-0.5">
-                    <span className="font-body text-xs font-bold text-blush-500">{i + 1}</span>
+                  <div className="shrink-0 w-6 h-6 rounded-full bg-accent-100 flex items-center justify-center mt-0.5">
+                    <span className="font-body text-xs font-bold text-accent-500">{i + 1}</span>
                   </div>
                   <div>
                     <p className="font-body font-semibold text-gray-700 text-sm mb-1">{t.heading}</p>
@@ -86,8 +86,8 @@ export default function BookModal({ book, onClose }) {
               ))}
             </div>
 
-            <div className="bg-blush-50 border border-blush-100 rounded-2xl p-5">
-              <p className="font-body text-xs font-semibold uppercase tracking-widest text-blush-400 mb-2">How I Apply This</p>
+            <div className="bg-accent-50 border border-accent-100 rounded-2xl p-5">
+              <p className="font-body text-xs font-semibold uppercase tracking-widest text-accent-400 mb-2">How I Apply This</p>
               <p className="font-body text-sm text-gray-600 leading-relaxed">{book.applyToSales}</p>
             </div>
           </div>

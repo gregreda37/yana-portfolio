@@ -5,6 +5,7 @@ import {
   FiArrowRight, FiTrendingUp, FiMessageSquare,
   FiLayout, FiEdit3, FiGlobe, FiStar, FiCheck,
 } from 'react-icons/fi';
+import logoUrl from '../assets/yvb-logo-original.svg';
 
 /* ── Scroll reveal wrapper ──────────────────────────────────────────────── */
 function Reveal({ children, delay = 0, className = '' }) {
@@ -131,29 +132,34 @@ function Header() {
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blush-50 via-white to-lavender-50 pt-16">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blush-50 via-white to-lavender-50 pt-28">
       {/* Background blobs */}
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blush-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-lavender-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse" style={{ animationDelay: '1.5s' }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
 
       <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-        {/* Eyebrow */}
+        {/* Logo — replaces eyebrow badge */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="inline-flex items-center gap-2 bg-blush-100 text-blush-600 font-body text-xs font-semibold px-4 py-2 rounded-full mb-8 border border-blush-200"
+          initial={{ y: -20, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 60, damping: 14, delay: 0.1 }}
+          className="mb-8"
         >
-          <span className="w-1.5 h-1.5 bg-blush-500 rounded-full animate-pulse" />
-          The modern portfolio for women who mean business
+          <motion.img
+            src={logoUrl}
+            alt="Yana"
+            className="w-28 sm:w-32 mx-auto rounded-xl shadow-lg"
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1.0 }}
+          />
         </motion.div>
 
         {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-gray-800 leading-[0.9] mb-8"
         >
           Your story is{' '}

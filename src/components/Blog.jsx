@@ -6,7 +6,7 @@ import BookModal from './BookModal';
 import { FiClock, FiArrowRight, FiCalendar, FiBookOpen } from 'react-icons/fi';
 
 const categoryColors = {
-  'Prospecting': 'bg-blush-100 text-blush-600',
+  'Prospecting': 'bg-accent-100 text-accent-600',
   'Sales Strategy': 'bg-lavender-100 text-purple-600',
   'Relationship Building': 'bg-pink-100 text-pink-600',
   'Objection Handling': 'bg-rose-100 text-rose-600',
@@ -41,7 +41,7 @@ export default function Blog() {
         >
           <button
             onClick={() => setSelectedPost(blogPosts[0])}
-            className="w-full text-left group bg-gradient-to-br from-blush-50 to-lavender-50 border border-blush-100 rounded-3xl p-8 md:p-10 hover:shadow-md transition-shadow duration-300"
+            className="w-full text-left group bg-gradient-to-br from-accent-50 to-accent-100 border border-accent-100 rounded-3xl p-8 md:p-10 hover:shadow-md transition-shadow duration-300"
           >
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <span className={`font-body text-xs font-semibold px-3 py-1 rounded-full ${categoryColors[blogPosts[0].category]}`}>
@@ -54,11 +54,11 @@ export default function Blog() {
                 <FiClock size={11} /> {blogPosts[0].readTime}
               </span>
             </div>
-            <h3 className="font-display text-3xl md:text-4xl font-light text-gray-800 mb-3 group-hover:text-blush-600 transition-colors">
+            <h3 className="font-display text-3xl md:text-4xl font-light text-gray-800 mb-3 group-hover:text-accent-600 transition-colors">
               {blogPosts[0].title}
             </h3>
             <p className="font-body text-gray-500 leading-relaxed max-w-2xl mb-6">{blogPosts[0].excerpt}</p>
-            <span className="inline-flex items-center gap-2 font-body text-sm font-semibold text-blush-500 group-hover:gap-3 transition-all">
+            <span className="inline-flex items-center gap-2 font-body text-sm font-semibold text-accent-500 group-hover:gap-3 transition-all">
               Read article <FiArrowRight size={14} />
             </span>
           </button>
@@ -82,7 +82,7 @@ export default function Blog() {
                     {post.category}
                   </span>
                 </div>
-                <h3 className="font-display text-xl font-medium text-gray-800 mb-2 leading-snug group-hover:text-blush-600 transition-colors flex-1">
+                <h3 className="font-display text-xl font-medium text-gray-800 mb-2 leading-snug group-hover:text-accent-600 transition-colors flex-1">
                   {post.title}
                 </h3>
                 <p className="font-body text-sm text-gray-400 leading-relaxed mb-4 line-clamp-3">
@@ -93,7 +93,7 @@ export default function Blog() {
                     <span className="flex items-center gap-1"><FiCalendar size={10} /> {post.date}</span>
                     <span className="flex items-center gap-1"><FiClock size={10} /> {post.readTime}</span>
                   </div>
-                  <FiArrowRight className="text-blush-300 group-hover:text-blush-500 group-hover:translate-x-1 transition-all" size={14} />
+                  <FiArrowRight className="text-accent-300 group-hover:text-accent-500 group-hover:translate-x-1 transition-all" size={14} />
                 </div>
               </button>
             </motion.div>
@@ -108,8 +108,8 @@ export default function Blog() {
           className="mt-20"
         >
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 bg-blush-50 border border-blush-200 rounded-2xl flex items-center justify-center">
-              <FiBookOpen className="text-blush-500" size={18} />
+            <div className="w-10 h-10 bg-accent-50 border border-accent-200 rounded-2xl flex items-center justify-center">
+              <FiBookOpen className="text-accent-500" size={18} />
             </div>
             <div>
               <p className="section-subtitle mb-0">What I'm Reading</p>
@@ -143,18 +143,18 @@ export default function Blog() {
                       </span>
                       <div className="flex gap-0.5 shrink-0">
                         {[...Array(book.rating)].map((_, j) => (
-                          <span key={j} className="text-blush-300 text-xs">★</span>
+                          <span key={j} className="text-accent-300 text-xs">★</span>
                         ))}
                       </div>
                     </div>
-                    <h4 className="font-display text-lg font-medium text-gray-800 leading-tight mb-0.5 group-hover:text-blush-600 transition-colors">
+                    <h4 className="font-display text-lg font-medium text-gray-800 leading-tight mb-0.5 group-hover:text-accent-600 transition-colors">
                       {book.title}
                     </h4>
                     <p className="font-body text-xs text-gray-400 mb-3">{book.author}</p>
                     <p className="font-body text-xs text-gray-500 leading-relaxed line-clamp-2">
                       {book.takeaways[0].heading} — {book.takeaways[0].body.slice(0, 80)}…
                     </p>
-                    <span className="inline-flex items-center gap-1 font-body text-xs font-semibold text-blush-400 mt-3 group-hover:gap-2 transition-all">
+                    <span className="inline-flex items-center gap-1 font-body text-xs font-semibold text-accent-400 mt-3 group-hover:gap-2 transition-all">
                       See insights <FiArrowRight size={11} />
                     </span>
                   </div>

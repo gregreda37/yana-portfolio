@@ -8,11 +8,11 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blush-50 via-white to-lavender-50"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-accent-50 via-white to-accent-100"
     >
       {/* Decorative blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blush-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-lavender-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-accent-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse" />
+      <div className="absolute bottom-20 right-10 w-80 h-80 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
 
       <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
@@ -68,7 +68,7 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.85 }}
           className="font-display text-6xl md:text-8xl font-light text-gray-800 leading-tight mb-6"
         >
-          Hi, I'm <span className="text-blush-500 italic">{profile.firstName}.</span>
+          Hi, I'm <span className="text-accent-500 italic">{profile.firstName}.</span>
         </motion.h1>
 
         <motion.p
@@ -93,7 +93,7 @@ export default function Hero() {
 
       <a
         href="#about"
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-blush-400 animate-bounce"
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-accent-400 animate-bounce"
         aria-label="Scroll down"
       >
         <FiArrowDown size={24} />

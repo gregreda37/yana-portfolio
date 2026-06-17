@@ -7,7 +7,7 @@ function StarRating() {
   return (
     <div className="flex gap-0.5 mb-4">
       {[...Array(5)].map((_, i) => (
-        <span key={i} className="text-blush-400 text-lg">★</span>
+        <span key={i} className="text-accent-400 text-lg">★</span>
       ))}
     </div>
   );
@@ -26,7 +26,7 @@ export default function Testimonials() {
   const active = testimonials[activeIdx] ?? {};
 
   return (
-    <section id="testimonials" className="py-24 px-6 bg-gradient-to-br from-lavender-50 to-blush-50" ref={ref}>
+    <section id="testimonials" className="py-24 px-6 bg-gradient-to-br from-accent-50 to-accent-100" ref={ref}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <p className="section-subtitle">Social Proof</p>
@@ -44,7 +44,7 @@ export default function Testimonials() {
           className="max-w-3xl mx-auto mb-12"
         >
           <div className="bg-white rounded-3xl shadow-md p-10 relative">
-            <div className="absolute -top-4 left-10 text-6xl text-blush-200 font-display leading-none">"</div>
+            <div className="absolute -top-4 left-10 text-6xl text-accent-200 font-display leading-none">"</div>
             <StarRating />
             <AnimatePresence mode="wait">
               <motion.p
@@ -84,7 +84,7 @@ export default function Testimonials() {
                     key={i}
                     onClick={() => setActiveIdx(i)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === activeIdx ? 'w-6 bg-blush-400' : 'w-1.5 bg-blush-200'
+                      i === activeIdx ? 'w-6 bg-accent-400' : 'w-1.5 bg-accent-200'
                     }`}
                     aria-label={`Go to testimonial ${i + 1}`}
                   />
@@ -93,14 +93,14 @@ export default function Testimonials() {
               <div className="flex gap-2">
                 <button
                   onClick={prev}
-                  className="w-9 h-9 rounded-full border border-blush-200 hover:bg-blush-50 flex items-center justify-center text-blush-400 transition-colors"
+                  className="w-9 h-9 rounded-full border border-accent-200 hover:bg-accent-50 flex items-center justify-center text-accent-400 transition-colors"
                   aria-label="Previous"
                 >
                   <FiChevronLeft size={16} />
                 </button>
                 <button
                   onClick={next}
-                  className="w-9 h-9 rounded-full bg-blush-500 hover:bg-blush-600 flex items-center justify-center text-white transition-colors"
+                  className="w-9 h-9 rounded-full bg-accent-500 hover:bg-accent-600 flex items-center justify-center text-white transition-colors"
                   aria-label="Next"
                 >
                   <FiChevronRight size={16} />
@@ -120,7 +120,7 @@ export default function Testimonials() {
               transition={{ duration: 0.4, delay: 0.3 + i * 0.08 }}
               onClick={() => setActiveIdx(i)}
               className={`card text-left cursor-pointer transition-all ${
-                activeIdx === i ? 'ring-2 ring-blush-300' : ''
+                activeIdx === i ? 'ring-2 ring-accent-300' : ''
               }`}
             >
               <div className={`w-8 h-8 ${t.color} rounded-full flex items-center justify-center mb-3`}>

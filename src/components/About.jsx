@@ -1,6 +1,6 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { FiDownload, FiLinkedin, FiMail, FiHeart, FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
+import { FiLinkedin, FiMail, FiHeart, FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
 import { SiTiktok } from 'react-icons/si';
 import { useData } from '../contexts/DataContext';
 
@@ -32,8 +32,8 @@ export default function About() {
             className="relative"
           >
             <div className="relative w-full max-w-sm mx-auto">
-              <div className="absolute -inset-4 bg-gradient-to-br from-accent-200 to-lavender-200 rounded-3xl -rotate-3" />
-              <div className="relative bg-gradient-to-br from-accent-100 to-lavender-100 rounded-3xl aspect-[4/5] flex items-center justify-center overflow-hidden">
+              <div className="absolute -inset-4 bg-gradient-to-br from-accent-200 to-accent-200 rounded-3xl -rotate-3" />
+              <div className="relative bg-gradient-to-br from-accent-100 to-accent-100 rounded-3xl aspect-[4/5] flex items-center justify-center overflow-hidden">
                 {profile.photo ? (
                   <img src={profile.photo} alt={[profile.firstName, profile.lastName].filter(Boolean).join(' ')} className="w-full h-full object-cover" />
                 ) : (
@@ -76,23 +76,34 @@ export default function About() {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 mb-6">
               <a href="#contact" className="btn-primary">Get in Touch</a>
-              <a href="/resume.pdf" download className="btn-outline flex items-center gap-2">
-                <FiDownload size={14} />
-                Download Resume
-              </a>
             </div>
 
-            <div className="flex flex-wrap gap-4 mt-6">
+            <div className="flex flex-wrap gap-2">
               {SOCIAL_ICONS.filter(s => profile[s.key]).map(({ key, Icon, label }) => (
-                <a key={key} href={profile[key]} target="_blank" rel="noreferrer" className="transition-colors" style={{ color: 'var(--accent-400)' }} aria-label={label}>
-                  <Icon size={20} />
+                <a
+                  key={key}
+                  href={profile[key]}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  className="flex items-center gap-2 font-body text-xs font-semibold px-3.5 py-2 rounded-full border transition-colors hover:bg-accent-50"
+                  style={{ color: 'var(--accent-600)', borderColor: 'var(--accent-200)', backgroundColor: 'var(--accent-50)' }}
+                >
+                  <Icon size={13} />
+                  {label}
                 </a>
               ))}
               {profile.email && (
-                <a href={`mailto:${profile.email}`} className="transition-colors" style={{ color: 'var(--accent-400)' }} aria-label="Email">
-                  <FiMail size={20} />
+                <a
+                  href={`mailto:${profile.email}`}
+                  aria-label="Email"
+                  className="flex items-center gap-2 font-body text-xs font-semibold px-3.5 py-2 rounded-full border transition-colors hover:bg-accent-50"
+                  style={{ color: 'var(--accent-600)', borderColor: 'var(--accent-200)', backgroundColor: 'var(--accent-50)' }}
+                >
+                  <FiMail size={13} />
+                  Email
                 </a>
               )}
             </div>

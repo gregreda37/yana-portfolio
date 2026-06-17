@@ -29,7 +29,7 @@ function Counter({ to, prefix = '', suffix = '', decimals = 0, active }) {
   }, [active, to, decimals]);
 
   return (
-    <span className="font-display text-5xl md:text-6xl font-light text-blush-500">
+    <span className="font-display text-5xl md:text-6xl font-light text-accent-500">
       {prefix}{val.toFixed(decimals)}{suffix}
     </span>
   );
@@ -41,7 +41,7 @@ export default function Metrics() {
   const inView = useInView(ref, { once: true, margin: '-60px' });
 
   return (
-    <section id="metrics" className="py-24 px-6 bg-gradient-to-br from-blush-50 to-lavender-50" ref={ref}>
+    <section id="metrics" className="py-24 px-6 bg-gradient-to-br from-accent-50 to-accent-100" ref={ref}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <p className="section-subtitle">By the Numbers</p>
@@ -62,8 +62,8 @@ export default function Metrics() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="card text-center group"
               >
-                <div className="w-12 h-12 bg-blush-50 border border-blush-200 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:bg-blush-100 transition-colors">
-                  <Icon className="text-blush-500" size={20} />
+                <div className="w-12 h-12 bg-accent-50 border border-accent-200 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:bg-accent-100 transition-colors">
+                  <Icon className="text-accent-500" size={20} />
                 </div>
                 <Counter
                   to={m.value}
