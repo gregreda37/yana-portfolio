@@ -58,11 +58,15 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
 
   const [data, setData] = useState(DEFAULTS);
   const [firestoreLoaded, setFirestoreLoaded] = useState(false);
+  const [firestoreError, setFirestoreError] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
 
     let cancelled = false;
+    setFirestoreLoaded(false);
+    setFirestoreError(false);
+
     async function load() {
       try {
         // ── 1. Read all sections ──────────────────────────────────────────
@@ -90,15 +94,13 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
             if (!cancelled) setData(DEFAULTS);
           } catch (seedErr) {
             console.error('Failed to seed default data for new user:', seedErr.message);
-            // Still show defaults in-memory so the UI isn't broken
             if (!cancelled) setData(DEFAULTS);
           }
         }
+        if (!cancelled) setFirestoreLoaded(true);
       } catch (e) {
         console.error('Failed to load portfolio data from Firestore:', e.message);
-        // Fall back to in-memory defaults so the UI still renders
-      } finally {
-        if (!cancelled) setFirestoreLoaded(true);
+        if (!cancelled) setFirestoreError(true);
       }
     }
     load();
@@ -112,7 +114,7 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
   }, [uid, readOnly]);
 
   return (
-    <DataContext.Provider value={{ ...data, uid, firestoreLoaded, saveSection }}>
+    <DataContext.Provider value={{ ...data, uid, firestoreLoaded, firestoreError, saveSection }}>
       {children}
     </DataContext.Provider>
   );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
 import { useNavigate } from 'react-router-dom';
 import EditProfile from './EditProfile';
 import EditMetrics from './EditMetrics';
@@ -44,6 +45,7 @@ const EDITORS = {
 
 export default function AdminDashboard() {
   const { user, username, logout } = useAuth();
+  const { firestoreLoaded, firestoreError } = useData();
   const navigate = useNavigate();
   const [active, setActive] = useState('profile');
   const [toast, setToast] = useState('');
@@ -132,7 +134,38 @@ export default function AdminDashboard() {
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="max-w-3xl mx-auto">
-            <ActiveEditor onToast={showToast} />
+            {firestoreError ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-4">
+                  <span className="text-2xl">⚠️</span>
+                </div>
+                <h3 className="font-display text-xl text-gray-800 mb-2">Couldn't load your data</h3>
+                <p className="font-body text-sm text-gray-400 max-w-xs mb-6">
+                  There was a problem connecting to the database. Check your internet connection and try again.
+                </p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="btn-primary"
+                >
+                  Reload
+                </button>
+              </div>
+            ) : firestoreLoaded ? (
+              <ActiveEditor onToast={showToast} />
+            ) : (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-7 w-40 bg-gray-100 rounded-lg" />
+                <div className="h-4 w-72 bg-gray-100 rounded" />
+                <div className="mt-6 bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+                  <div className="h-4 w-24 bg-gray-100 rounded" />
+                  <div className="h-10 bg-gray-100 rounded-xl" />
+                  <div className="h-4 w-24 bg-gray-100 rounded" />
+                  <div className="h-10 bg-gray-100 rounded-xl" />
+                  <div className="h-4 w-24 bg-gray-100 rounded" />
+                  <div className="h-24 bg-gray-100 rounded-xl" />
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
