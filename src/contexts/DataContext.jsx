@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getSection, saveSection as persistSection } from '../firebase/db';
+import { useAuth } from './AuthContext';
 
 import { metrics as defaultMetrics } from '../data/metrics';
 import { experience as defaultJobs, education as defaultEducation, skills as defaultSkills, healthcareBackground as defaultHealthcare } from '../data/experience';
@@ -8,70 +9,87 @@ import { blogPosts as defaultBlog } from '../data/blog';
 import { recentReads as defaultBooks } from '../data/books';
 
 const defaultProfile = {
-  name: 'Yana',
+  name: 'Your Name',
   title: 'Sales Professional',
-  bio1: "With 7+ years in B2B sales, I've built a career on one principle: genuine relationships close deals. I bring data-driven strategy, deep listening, and relentless follow-through to every opportunity.",
-  bio2: "Based in New York, I specialize in complex sales cycles, enterprise accounts, and building the internal champions that turn conversations into closed-won. Whether I'm running discovery, negotiating contracts, or onboarding a new client, I show up with energy and intention.",
+  bio1: "With years in B2B sales, I've built a career on one principle: genuine relationships close deals.",
+  bio2: "I specialize in complex sales cycles, enterprise accounts, and building the internal champions that turn conversations into closed-won.",
   location: 'New York, NY',
-  email: 'yana@example.com',
-  linkedin: 'https://linkedin.com/in/yana',
+  email: '',
+  linkedin: '',
   availabilityNote: 'New opportunities in enterprise or mid-market SaaS sales',
+  photo: '',
 };
 
-const DEFAULTS = {
+export const DEFAULTS = {
   profile: defaultProfile,
   metrics: { items: defaultMetrics },
   experience: { jobs: defaultJobs, education: defaultEducation, skills: defaultSkills },
-  healthcare: defaultHealthcare,
+  healthcare: { label: 'Healthcare Background', ...defaultHealthcare },
   testimonials: { items: defaultTestimonials },
   blog: { posts: defaultBlog },
   books: { items: defaultBooks },
+  settings: {
+    accentColor: 'blush',
+    visible: {
+      metrics: true,
+      experience: true,
+      specialty: true,
+      testimonials: true,
+      blog: true,
+      contact: true,
+    },
+  },
 };
 
 const SECTIONS = Object.keys(DEFAULTS);
 const DataContext = createContext(null);
 
-export function DataProvider({ children }) {
+export function DataProvider({ children, uid: uidProp, readOnly = false }) {
+  const { user } = useAuth();
+  const uid = uidProp ?? user?.uid ?? null;
+
   const [data, setData] = useState(DEFAULTS);
   const [firestoreLoaded, setFirestoreLoaded] = useState(false);
-  const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
+    if (!uid) return;
+
+    let cancelled = false;
     async function load() {
       try {
-        const results = await Promise.all(SECTIONS.map(s => getSection(s)));
+        const results = await Promise.all(SECTIONS.map(s => getSection(uid, s)));
+        if (cancelled) return;
+
         const updates = {};
         let hasAny = false;
         SECTIONS.forEach((s, i) => {
           if (results[i]) { updates[s] = results[i]; hasAny = true; }
         });
+
         if (hasAny) {
           setData(prev => ({ ...prev, ...updates }));
-          setSeeded(true);
+        } else if (!readOnly) {
+          await Promise.all(SECTIONS.map(s => persistSection(uid, s, DEFAULTS[s])));
+          if (!cancelled) setData(DEFAULTS);
         }
       } catch (e) {
         console.warn('Firestore unavailable — using static defaults.', e.message);
       } finally {
-        setFirestoreLoaded(true);
+        if (!cancelled) setFirestoreLoaded(true);
       }
     }
     load();
-  }, []);
+    return () => { cancelled = true; };
+  }, [uid, readOnly]);
 
   const saveSection = useCallback(async (section, sectionData) => {
-    await persistSection(section, sectionData);
+    if (!uid || readOnly) return;
+    await persistSection(uid, section, sectionData);
     setData(prev => ({ ...prev, [section]: sectionData }));
-    setSeeded(true);
-  }, []);
-
-  const seedAll = useCallback(async () => {
-    await Promise.all(SECTIONS.map(s => persistSection(s, DEFAULTS[s])));
-    setData(DEFAULTS);
-    setSeeded(true);
-  }, []);
+  }, [uid, readOnly]);
 
   return (
-    <DataContext.Provider value={{ ...data, firestoreLoaded, seeded, saveSection, seedAll }}>
+    <DataContext.Provider value={{ ...data, firestoreLoaded, saveSection }}>
       {children}
     </DataContext.Provider>
   );

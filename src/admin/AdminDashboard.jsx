@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useData } from '../contexts/DataContext';
 import { useNavigate } from 'react-router-dom';
 import EditProfile from './EditProfile';
 import EditMetrics from './EditMetrics';
@@ -9,19 +8,21 @@ import EditHealthcare from './EditHealthcare';
 import EditTestimonials from './EditTestimonials';
 import EditBlog from './EditBlog';
 import EditBooks from './EditBooks';
+import EditSettings from './EditSettings';
 import {
   FiUser, FiTrendingUp, FiBriefcase, FiHeart,
-  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiDatabase,
+  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings,
 } from 'react-icons/fi';
 
 const NAV = [
-  { key: 'profile',      label: 'Profile',        icon: FiUser },
-  { key: 'metrics',      label: 'Metrics',         icon: FiTrendingUp },
-  { key: 'experience',   label: 'Experience',      icon: FiBriefcase },
-  { key: 'healthcare',   label: 'Healthcare',      icon: FiHeart },
-  { key: 'testimonials', label: 'Testimonials',    icon: FiMessageSquare },
-  { key: 'blog',         label: 'Blog Posts',      icon: FiEdit },
-  { key: 'books',        label: 'Recent Reads',    icon: FiBook },
+  { key: 'profile',      label: 'Profile',           icon: FiUser },
+  { key: 'metrics',      label: 'Metrics',            icon: FiTrendingUp },
+  { key: 'experience',   label: 'Experience',         icon: FiBriefcase },
+  { key: 'healthcare',   label: 'Specialty',          icon: FiHeart },
+  { key: 'testimonials', label: 'Testimonials',       icon: FiMessageSquare },
+  { key: 'blog',         label: 'Blog Posts',         icon: FiEdit },
+  { key: 'books',        label: 'Recent Reads',       icon: FiBook },
+  { key: 'settings',     label: 'Appearance',         icon: FiSettings },
 ];
 
 const EDITORS = {
@@ -32,15 +33,14 @@ const EDITORS = {
   testimonials: EditTestimonials,
   blog:         EditBlog,
   books:        EditBooks,
+  settings:     EditSettings,
 };
 
 export default function AdminDashboard() {
-  const { user, logout } = useAuth();
-  const { seeded, seedAll } = useData();
+  const { user, username, logout } = useAuth();
   const navigate = useNavigate();
   const [active, setActive] = useState('profile');
   const [toast, setToast] = useState('');
-  const [seeding, setSeeding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const showToast = (msg) => {
@@ -53,13 +53,6 @@ export default function AdminDashboard() {
     navigate('/admin/login');
   };
 
-  const handleSeed = async () => {
-    setSeeding(true);
-    await seedAll();
-    setSeeding(false);
-    showToast('Default data seeded to Firestore!');
-  };
-
   const ActiveEditor = EDITORS[active];
 
   return (
@@ -70,13 +63,20 @@ export default function AdminDashboard() {
           <button className="md:hidden text-gray-500 p-1" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">
             <span className="block w-5 h-0.5 bg-current mb-1" /><span className="block w-5 h-0.5 bg-current mb-1" /><span className="block w-5 h-0.5 bg-current" />
           </button>
-          <span className="font-display text-xl text-blush-500 font-light">Yana</span>
+          <span className="font-display text-xl text-blush-500 font-light">Portfolio</span>
           <span className="font-body text-xs text-gray-400 hidden sm:block">· Admin</span>
         </div>
         <div className="flex items-center gap-3">
-          <a href="/" target="_blank" rel="noreferrer" className="font-body text-xs text-gray-400 hover:text-blush-500 transition-colors flex items-center gap-1">
-            View site <FiExternalLink size={11} />
-          </a>
+          {username && (
+            <a
+              href={`/${username}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-body text-xs text-gray-400 hover:text-blush-500 transition-colors flex items-center gap-1"
+            >
+              findyana.com/{username} <FiExternalLink size={11} />
+            </a>
+          )}
           <span className="font-body text-xs text-gray-400 hidden sm:block">{user?.email}</span>
           <button onClick={handleLogout} className="flex items-center gap-1.5 font-body text-xs text-gray-500 hover:text-red-500 transition-colors">
             <FiLogOut size={14} /> Logout
@@ -108,15 +108,12 @@ export default function AdminDashboard() {
             ))}
           </nav>
 
-          {/* Seed data button */}
-          {!seeded && (
+          {username && (
             <div className="p-4 border-t border-gray-100">
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-                <p className="font-body text-xs text-amber-700 mb-2 leading-snug">Firestore is empty. Seed with default data?</p>
-                <button onClick={handleSeed} disabled={seeding} className="font-body text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 mx-auto">
-                  <FiDatabase size={12} /> {seeding ? 'Seeding…' : 'Seed Data'}
-                </button>
-              </div>
+              <p className="font-body text-xs text-gray-400 text-center leading-snug">
+                Public URL<br />
+                <span className="text-blush-500 font-semibold">findyana.com/{username}</span>
+              </p>
             </div>
           )}
         </aside>

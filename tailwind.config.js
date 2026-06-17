@@ -27,8 +27,15 @@ export default {
           400: '#a78bfa',
           500: '#8b5cf6',
         },
-        rose: {
-          DEFAULT: '#f9a8d4',
+        // Themeable accent — values come from CSS custom properties
+        accent: {
+          50:  'var(--accent-50)',
+          100: 'var(--accent-100)',
+          200: 'var(--accent-200)',
+          300: 'var(--accent-300)',
+          400: 'var(--accent-400)',
+          500: 'var(--accent-500)',
+          600: 'var(--accent-600)',
         },
       },
       fontFamily: {

@@ -17,26 +17,41 @@ export default function Hero() {
 
       <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
 
-        {/* Logo — floats in from above, then bobs continuously */}
-        <motion.div
-          initial={{ y: -320, opacity: 0, rotate: -14, scale: 0.75 }}
-          animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 60, damping: 13, delay: 0.1 }}
-          className="mb-10"
-        >
-          <motion.img
-            src={logoUrl}
-            alt="YVB Logo"
-            className="w-56 sm:w-72 md:w-80 mx-auto rounded-2xl shadow-2xl"
-            animate={{ y: [0, -14, 0] }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: 1.4,
-            }}
-          />
-        </motion.div>
+        {/* Profile photo (if set) or logo */}
+        {profile.photo ? (
+          <motion.div
+            initial={{ y: -60, opacity: 0, scale: 0.8 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 60, damping: 13, delay: 0.1 }}
+            className="mb-10"
+          >
+            <img
+              src={profile.photo}
+              alt={profile.name}
+              className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ y: -320, opacity: 0, rotate: -14, scale: 0.75 }}
+            animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 60, damping: 13, delay: 0.1 }}
+            className="mb-10"
+          >
+            <motion.img
+              src={logoUrl}
+              alt="Logo"
+              className="w-56 sm:w-72 md:w-80 mx-auto rounded-2xl shadow-2xl"
+              animate={{ y: [0, -14, 0] }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 1.4,
+              }}
+            />
+          </motion.div>
+        )}
 
         <motion.p
           initial={{ opacity: 0, y: 16 }}

@@ -1,9 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /portfolio/{document} {
+    // Username → UID lookup (public read, only the owner can write)
+    match /usernames/{username} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+
+    // User profile doc (stores username, createdAt)
+    match /users/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+
+      // Per-user portfolio sections
+      match /portfolio/{section} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
     }
   }
 }

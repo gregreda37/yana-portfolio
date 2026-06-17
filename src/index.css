@@ -2,37 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-  body {
-    @apply font-body text-gray-700 bg-blush-50;
-  }
-  h1, h2, h3, h4 {
-    @apply font-display;
-  }
+/* ── Accent color themes ────────────────────────────────────────────────── */
+/* Default: blush (pink) */
+:root,
+[data-accent="blush"] {
+  --accent-50:  #fff1f5;
+  --accent-100: #ffe4ed;
+  --accent-200: #fecdd9;
+  --accent-300: #fda4c0;
+  --accent-400: #fb7da0;
+  --accent-500: #f4547e;
+  --accent-600: #e02d5e;
 }
 
+[data-accent="rose"] {
+  --accent-50:  #fff1f2;
+  --accent-100: #ffe4e6;
+  --accent-200: #fecdd3;
+  --accent-300: #fda4af;
+  --accent-400: #fb7185;
+  --accent-500: #f43f5e;
+  --accent-600: #e11d48;
+}
+
+[data-accent="lavender"] {
+  --accent-50:  #f5f3ff;
+  --accent-100: #ede9fe;
+  --accent-200: #ddd6fe;
+  --accent-300: #c4b5fd;
+  --accent-400: #a78bfa;
+  --accent-500: #8b5cf6;
+  --accent-600: #7c3aed;
+}
+
+[data-accent="sage"] {
+  --accent-50:  #f0fdf4;
+  --accent-100: #dcfce7;
+  --accent-200: #bbf7d0;
+  --accent-300: #86efac;
+  --accent-400: #4ade80;
+  --accent-500: #22c55e;
+  --accent-600: #16a34a;
+}
+
+[data-accent="sky"] {
+  --accent-50:  #f0f9ff;
+  --accent-100: #e0f2fe;
+  --accent-200: #bae6fd;
+  --accent-300: #7dd3fc;
+  --accent-400: #38bdf8;
+  --accent-500: #0ea5e9;
+  --accent-600: #0284c7;
+}
+
+[data-accent="peach"] {
+  --accent-50:  #fff7ed;
+  --accent-100: #ffedd5;
+  --accent-200: #fed7aa;
+  --accent-300: #fdba74;
+  --accent-400: #fb923c;
+  --accent-500: #f97316;
+  --accent-600: #ea580c;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply font-body text-gray-700 bg-blush-50; }
+  h1, h2, h3, h4 { @apply font-display; }
+}
+
+/* ── Public site components (accent-aware) ──────────────────────────────── */
 @layer components {
   .section-title {
     @apply text-4xl md:text-5xl font-display font-light text-gray-800 mb-2;
   }
   .section-subtitle {
-    @apply text-blush-500 font-body font-medium tracking-widest text-xs uppercase mb-6;
+    @apply font-body font-medium tracking-widest text-xs uppercase mb-6;
+    color: var(--accent-500);
   }
   .btn-primary {
-    @apply inline-block bg-blush-500 hover:bg-blush-600 text-white font-body font-semibold text-sm px-7 py-3 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5;
+    @apply inline-block text-white font-body font-semibold text-sm px-7 py-3 rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5;
+    background-color: var(--accent-500);
+  }
+  .btn-primary:hover {
+    background-color: var(--accent-600);
   }
   .btn-outline {
-    @apply inline-block border border-blush-400 text-blush-600 hover:bg-blush-100 font-body font-semibold text-sm px-7 py-3 rounded-full transition-all duration-300;
+    @apply inline-block font-body font-semibold text-sm px-7 py-3 rounded-full transition-all duration-300;
+    border: 1px solid var(--accent-400);
+    color: var(--accent-600);
+  }
+  .btn-outline:hover {
+    background-color: var(--accent-100);
   }
   .card {
     @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6;
   }
 }
 
-/* Admin utility classes */
+/* ── Admin utility classes (always blush, not accent-aware) ─────────────── */
 @layer components {
   .admin-label {
     @apply font-body text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1.5;
