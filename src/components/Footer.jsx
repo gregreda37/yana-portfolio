@@ -22,12 +22,13 @@ const links = [
 
 export default function Footer() {
   const { profile } = useData();
+  const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ');
   return (
     <footer className="bg-gray-900 text-gray-400 py-14 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-center md:text-left">
-            <p className="font-display text-3xl text-white font-light mb-1">{profile.name}</p>
+            <p className="font-display text-3xl text-white font-light mb-1">{fullName}</p>
             <p className="font-body text-sm">{profile.title} · {profile.location}</p>
           </div>
 
@@ -57,7 +58,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-10 pt-8 flex items-center justify-between">
           <p className="font-body text-xs text-gray-600 flex items-center gap-1.5">
-            Built with <FiHeart size={11} className="text-blush-400" /> · © {new Date().getFullYear()} {profile.name}. All rights reserved.
+            Built with <a href="/" className="text-blush-400 hover:text-blush-300 transition-colors font-semibold">Yana</a> <FiHeart size={11} className="text-blush-400" /> · © {new Date().getFullYear()} {fullName}. All rights reserved.
           </p>
           <a href="/admin" className="font-body text-xs text-gray-700 hover:text-blush-400 transition-colors">
             Admin

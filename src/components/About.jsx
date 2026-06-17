@@ -35,12 +35,12 @@ export default function About() {
               <div className="absolute -inset-4 bg-gradient-to-br from-accent-200 to-lavender-200 rounded-3xl -rotate-3" />
               <div className="relative bg-gradient-to-br from-accent-100 to-lavender-100 rounded-3xl aspect-[4/5] flex items-center justify-center overflow-hidden">
                 {profile.photo ? (
-                  <img src={profile.photo} alt={profile.name} className="w-full h-full object-cover" />
+                  <img src={profile.photo} alt={[profile.firstName, profile.lastName].filter(Boolean).join(' ')} className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center">
                     <div className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: 'var(--accent-300)' }}>
                       <span className="font-display text-4xl text-white font-medium">
-                        {profile.name?.[0] ?? 'Y'}
+                        {profile.firstName?.[0] ?? 'Y'}
                       </span>
                     </div>
                     <p className="font-body text-sm italic" style={{ color: 'var(--accent-400)' }}>Add your photo in Profile</p>

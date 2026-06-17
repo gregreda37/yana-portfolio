@@ -27,7 +27,7 @@ export default function Hero() {
           >
             <img
               src={profile.photo}
-              alt={profile.name}
+              alt={[profile.firstName, profile.lastName].filter(Boolean).join(' ')}
               className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
             />
           </motion.div>
@@ -68,7 +68,7 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.85 }}
           className="font-display text-6xl md:text-8xl font-light text-gray-800 leading-tight mb-6"
         >
-          Hi, I'm <span className="text-blush-500 italic">{profile.name}.</span>
+          Hi, I'm <span className="text-blush-500 italic">{profile.firstName}.</span>
         </motion.h1>
 
         <motion.p

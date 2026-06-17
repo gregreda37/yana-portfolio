@@ -136,7 +136,8 @@ export default function EditProfile({ onToast }) {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5 mt-4">
-        <Field label="Display Name"       value={form.name}             onChange={e => set('name', e.target.value)} />
+        <Field label="First Name"         value={form.firstName}        onChange={e => set('firstName', e.target.value)} />
+        <Field label="Last Name"          value={form.lastName}         onChange={e => set('lastName', e.target.value)} />
         <Field label="Title / Tagline"    value={form.title}            onChange={e => set('title', e.target.value)} />
         <div className="sm:col-span-2">
           <Field label="Bio — Paragraph 1" rows={3} value={form.bio1}   onChange={e => set('bio1', e.target.value)} />

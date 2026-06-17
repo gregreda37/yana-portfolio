@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
+import { useData } from '../contexts/DataContext';
 
 const links = [
   { label: 'About', href: '#about' },
@@ -11,6 +12,8 @@ const links = [
 ];
 
 export default function Navbar() {
+  const { profile } = useData();
+  const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ');
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -26,7 +29,7 @@ export default function Navbar() {
     }`}>
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
         <a href="#hero" className="font-display text-2xl font-medium text-blush-600 tracking-wide">
-          Yana
+          {fullName}
         </a>
 
         {/* Desktop links */}

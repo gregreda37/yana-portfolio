@@ -10,7 +10,8 @@ import { recentReads as defaultBooks } from '../data/books';
 import { pageantData as defaultPageant } from '../data/pageant';
 
 const defaultProfile = {
-  name: 'Your Name',
+  firstName: 'Your',
+  lastName: 'Name',
   title: 'Sales Professional',
   bio1: "With years in B2B sales, I've built a career on one principle: genuine relationships close deals.",
   bio2: "I specialize in complex sales cycles, enterprise accounts, and building the internal champions that turn conversations into closed-won.",
@@ -74,6 +75,12 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
         });
 
         if (hasAny) {
+          // Migrate old single `name` field → firstName / lastName
+          if (updates.profile?.name && !updates.profile?.firstName) {
+            const parts = updates.profile.name.trim().split(/\s+/);
+            updates.profile.firstName = parts[0] ?? '';
+            updates.profile.lastName = parts.slice(1).join(' ') ?? '';
+          }
           setData(prev => ({ ...prev, ...updates }));
         } else if (!readOnly) {
           await Promise.all(SECTIONS.map(s => persistSection(uid, s, DEFAULTS[s])));
