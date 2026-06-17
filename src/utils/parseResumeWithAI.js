@@ -1,14 +1,35 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).href;
+// Bundled worker — no CDN dependency, no version-mismatch silently hanging
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 // ── PDF text extraction ───────────────────────────────────────────────────────
 async function extractPdfText(file) {
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const loadingTask = pdfjsLib.getDocument({
+    data: new Uint8Array(arrayBuffer),
+    disableStream: true,
+    disableAutoFetch: true,
+  });
+
+  // Race against a timeout so a broken worker never hangs the UI forever
+  let pdf;
+  try {
+    pdf = await Promise.race([
+      loadingTask.promise,
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error('PDF reading timed out. Try a text-based PDF, or paste your resume text below.')),
+          20000
+        )
+      ),
+    ]);
+  } catch (err) {
+    loadingTask.destroy?.();
+    throw err;
+  }
+
   const pages = [];
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
@@ -19,14 +40,31 @@ async function extractPdfText(file) {
   return pages.join('\n\n');
 }
 
-// ── AI backend resolution (Azure > standard OpenAI) ──────────────────────────
+// ── AI backend resolution (Claude > Azure > OpenAI) ──────────────────────────
 function resolveConfig(manualKey) {
+  // Claude (Anthropic) — primary
+  const isAnthropicKey = (k) => typeof k === 'string' && k.startsWith('sk-ant-');
+  const anthropicKey = (isAnthropicKey(manualKey) ? manualKey : null)
+    ?? import.meta.env.VITE_ANTHROPIC_API_KEY;
+  if (anthropicKey) {
+    return {
+      type: 'anthropic',
+      url: 'https://api.anthropic.com/v1/messages',
+      headers: {
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json',
+      },
+    };
+  }
+
+  // Azure OpenAI — fallback
   const azureKey    = import.meta.env.VITE_AZURE_OPENAI_API_KEY;
   const azureEndpt  = import.meta.env.VITE_AZURE_OPENAI_ENDPOINT;
-  const azureVer    = import.meta.env.VITE_AZURE_OPENAI_API_VERSION ?? '2024-12-01-preview';
-  const azureDeploy = import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT ?? 'gpt-35-turbo';
-
   if (azureKey && azureEndpt) {
+    const azureVer    = import.meta.env.VITE_AZURE_OPENAI_API_VERSION ?? '2024-12-01-preview';
+    const azureDeploy = import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT ?? 'gpt-35-turbo';
     const base = azureEndpt.replace(/\/$/, '');
     return {
       type: 'azure',
@@ -35,7 +73,8 @@ function resolveConfig(manualKey) {
     };
   }
 
-  const openaiKey = manualKey || import.meta.env.VITE_OPENAI_API_KEY;
+  // Standard OpenAI — fallback
+  const openaiKey = (!isAnthropicKey(manualKey) && manualKey) || import.meta.env.VITE_OPENAI_API_KEY;
   if (openaiKey) {
     return {
       type: 'openai',
@@ -45,6 +84,69 @@ function resolveConfig(manualKey) {
   }
 
   return null;
+}
+
+// ── Build request body per backend ────────────────────────────────────────────
+function buildBody(config, text) {
+  if (config.type === 'anthropic') {
+    return {
+      model: import.meta.env.VITE_ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: SYSTEM_PROMPT,
+      messages: [{
+        role: 'user',
+        content: `I am building my professional portfolio on Yana and have uploaded my own resume. Please extract and structure my professional information from it so I can showcase my career.\n\nMy resume:\n\n${text.slice(0, 14000)}`,
+      }],
+    };
+  }
+  const body = {
+    messages: MESSAGES(text),
+    temperature: 0.2,
+    response_format: { type: 'json_object' },
+  };
+  if (config.type === 'openai') body.model = 'gpt-4o';
+  return body;
+}
+
+// ── Extract text content from response per backend ────────────────────────────
+function extractContent(config, result) {
+  if (config.type === 'anthropic') {
+    // Find the first text-type block (Claude may return multiple content blocks)
+    const block = result.content?.find(b => b.type === 'text');
+    return block?.text ?? '';
+  }
+  return result.choices?.[0]?.message?.content ?? '';
+}
+
+// ── Robustly extract a JSON object from a model response string ───────────────
+// Handles: bare JSON, ```json fences, prose before/after the object
+function parseJsonFromResponse(text) {
+  if (!text) return null;
+
+  // 1. Direct parse
+  try { return JSON.parse(text); } catch {}
+
+  // 2. Strip markdown code fences then parse
+  const fenceStripped = text.trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim();
+  try { return JSON.parse(fenceStripped); } catch {}
+
+  // 3. Extract the outermost {...} block (handles prose before/after JSON)
+  const first = text.indexOf('{');
+  const last  = text.lastIndexOf('}');
+  if (first !== -1 && last > first) {
+    try { return JSON.parse(text.slice(first, last + 1)); } catch {}
+  }
+
+  return null;
+}
+
+// ── Extract error message from a non-OK response ──────────────────────────────
+async function extractError(res) {
+  const data = await res.json().catch(() => ({}));
+  return data.error?.message ?? `API error ${res.status}`;
 }
 
 // ── Partial-JSON section extractor ────────────────────────────────────────────
@@ -82,19 +184,46 @@ export function extractSection(accumulated, sectionName) {
   return null;
 }
 
-// ── ID normalization ──────────────────────────────────────────────────────────
-function normalizeIds(parsed) {
+// ── Response normalization ────────────────────────────────────────────────────
+// Ensures the AI's output always has the exact shape the UI expects, regardless
+// of minor model variations (null sections, wrapped objects, missing keys, etc.)
+function normalizeResponse(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  // Some models wrap everything in a single outer key, e.g. { "resume": { ... } }
+  const keys = Object.keys(raw);
+  if (!raw.profile && !raw.metrics && !raw.experience && keys.length === 1) {
+    const inner = raw[keys[0]];
+    if (inner && typeof inner === 'object' && (inner.profile || inner.metrics || inner.experience)) {
+      raw = inner;
+    }
+  }
+
   const now = Date.now();
-  if (parsed.metrics?.items) {
-    parsed.metrics.items = parsed.metrics.items.map((m, i) => ({ ...m, id: m.id ?? now + i }));
-  }
-  if (parsed.experience?.jobs) {
-    parsed.experience.jobs = parsed.experience.jobs.map((j, i) => ({ ...j, id: j.id ?? now + 100 + i }));
-  }
-  if (parsed.experience?.education) {
-    parsed.experience.education = parsed.experience.education.map((e, i) => ({ ...e, id: e.id ?? now + 200 + i }));
-  }
-  return parsed;
+
+  const profile = typeof raw.profile === 'object' && raw.profile ? raw.profile : {};
+
+  const rawItems = Array.isArray(raw.metrics?.items) ? raw.metrics.items : [];
+  const items = rawItems.map((m, i) => ({ ...m, id: m.id ?? now + i }));
+
+  const rawJobs = Array.isArray(raw.experience?.jobs) ? raw.experience.jobs : [];
+  const rawEdu  = Array.isArray(raw.experience?.education) ? raw.experience.education : [];
+  const rawSkills = Array.isArray(raw.experience?.skills) ? raw.experience.skills : [];
+
+  return {
+    profile: {
+      firstName: '', lastName: '', title: '', bio1: '', bio2: '',
+      location: '', email: '', linkedin: '', instagram: '', twitter: '',
+      facebook: '', tiktok: '', youtube: '', availabilityNote: '',
+      ...profile,
+    },
+    metrics: { items },
+    experience: {
+      jobs:      rawJobs.map((j, i) => ({ ...j, id: j.id ?? now + 100 + i })),
+      education: rawEdu.map((e, i) => ({ ...e, id: e.id ?? now + 200 + i })),
+      skills:    rawSkills,
+    },
+  };
 }
 
 // ── Shared extraction prompt ──────────────────────────────────────────────────
@@ -162,14 +291,15 @@ Rules:
 - skills: 6-15 skill strings as a flat array
 - Empty missing fields with empty string or empty array`;
 
+// OpenAI/Azure use messages array with system role; Claude uses separate system field
 const MESSAGES = (text) => [
   { role: 'system', content: SYSTEM_PROMPT },
-  { role: 'user', content: `Parse this resume:\n\n${text.slice(0, 14000)}` },
+  { role: 'user',   content: `Parse this resume:\n\n${text.slice(0, 14000)}` },
 ];
 
-// ── Streaming parser (primary) ────────────────────────────────────────────────
-// Calls onSection(name, data) as each JSON section completes in the stream.
-// Calls onComplete(parsedData) when the full response is done.
+// ── Primary parser — sequential section reveal ────────────────────────────────
+// Calls onSection(name, data) for each section with staggered delays so the
+// UI can animate each one in as if it arrived from a stream.
 export async function parseResumeStreaming(file, manualApiKey, { onProgress, onSection, onError, onComplete } = {}) {
   try {
     onProgress?.('reading');
@@ -177,84 +307,59 @@ export async function parseResumeStreaming(file, manualApiKey, { onProgress, onS
     if (!text.trim()) throw new Error('Could not extract text from this PDF. It may be a scanned image — try a text-based PDF.');
 
     const config = resolveConfig(manualApiKey);
-    if (!config) throw new Error('No AI API key configured. Add VITE_AZURE_OPENAI_API_KEY or VITE_OPENAI_API_KEY to your .env.local');
+    if (!config) throw new Error('No AI API key configured. Add VITE_ANTHROPIC_API_KEY to your .env.local');
 
     onProgress?.('streaming');
-
-    const body = {
-      messages: MESSAGES(text),
-      temperature: 0.2,
-      response_format: { type: 'json_object' },
-      stream: true,
-    };
-    if (config.type === 'openai') body.model = 'gpt-4o';
 
     const res = await fetch(config.url, {
       method: 'POST',
       headers: config.headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify(buildBody(config, text)),
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message ?? `API error ${res.status}`);
+    if (!res.ok) throw new Error(await extractError(res));
+
+    const result = await res.json();
+    console.log('[Yana] full API result:', JSON.stringify(result).slice(0, 800));
+
+    if (result.stop_reason === 'refusal' || (Array.isArray(result.content) && result.content.length === 0)) {
+      throw new Error('The AI declined to process this document. Try a different PDF or paste your resume text.');
     }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let accumulated = '';
-    const found = new Set();
+    const content = extractContent(config, result);
+    console.log('[Yana] extracted content:', content.slice(0, 400));
 
-    try {
-      outer: while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const lines = decoder.decode(value, { stream: true }).split('\n');
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const raw = line.slice(6).trim();
-          if (raw === '[DONE]') break outer;
-          try {
-            const evt = JSON.parse(raw);
-            const delta = evt.choices?.[0]?.delta?.content ?? '';
-            if (!delta) continue;
-            accumulated += delta;
-
-            // Check if each section has just completed
-            for (const name of ['profile', 'metrics', 'experience']) {
-              if (!found.has(name)) {
-                const extracted = extractSection(accumulated, name);
-                if (extracted) {
-                  found.add(name);
-                  onSection?.(name, extracted);
-                }
-              }
-            }
-          } catch { /* skip malformed SSE lines */ }
-        }
-      }
-    } finally {
-      reader.releaseLock();
+    const raw = parseJsonFromResponse(content);
+    if (!raw) {
+      console.error('[Yana] could not parse JSON from:', content.slice(0, 600));
+      throw new Error('AI returned invalid JSON — please try again.');
     }
 
-    onProgress?.('parsing');
+    const parsed = normalizeResponse(raw);
+    if (!parsed) throw new Error('AI response had no usable data — please try again.');
 
-    let parsed;
-    try {
-      parsed = JSON.parse(accumulated);
-    } catch {
-      // Try to salvage partial JSON by closing open brackets
-      throw new Error('AI response was incomplete. Please try again.');
+    // Reveal each section with a short delay so the UI can animate them in
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+    if (parsed.profile) {
+      onSection?.('profile', parsed.profile);
+      await wait(900);
+    }
+    if (parsed.metrics) {
+      onSection?.('metrics', parsed.metrics);
+      await wait(900);
+    }
+    if (parsed.experience) {
+      onSection?.('experience', parsed.experience);
+      await wait(900);
     }
 
-    parsed = normalizeIds(parsed);
     onComplete?.(parsed);
     return parsed;
 
   } catch (err) {
     onError?.(err.message ?? String(err));
-    throw err;
+    // Don't re-throw — onError owns the UI reset
   }
 }
 
@@ -269,36 +374,26 @@ export async function parseResumeWithAI(file, manualApiKey, onProgress) {
 
   onProgress?.('analyzing');
 
-  const body = {
-    messages: MESSAGES(text),
-    temperature: 0.2,
-    response_format: { type: 'json_object' },
-  };
-  if (config.type === 'openai') body.model = 'gpt-4o';
-
   const res = await fetch(config.url, {
     method: 'POST',
     headers: config.headers,
-    body: JSON.stringify(body),
+    body: JSON.stringify(buildBody(config, text)),
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message ?? `API error ${res.status}`);
-  }
+  if (!res.ok) throw new Error(await extractError(res));
 
   const result = await res.json();
-  const content = result.choices?.[0]?.message?.content;
+  const content = extractContent(config, result);
 
-  let parsed;
-  try { parsed = JSON.parse(content); }
-  catch { throw new Error('AI returned invalid JSON — please try again.'); }
+  const raw = parseJsonFromResponse(content);
+  if (!raw) throw new Error('AI returned invalid JSON — please try again.');
 
   onProgress?.('done');
-  return normalizeIds(parsed);
+  return normalizeResponse(raw);
 }
 
 export const hasAIConfig = !!(
+  import.meta.env.VITE_ANTHROPIC_API_KEY ||
   import.meta.env.VITE_AZURE_OPENAI_API_KEY ||
   import.meta.env.VITE_OPENAI_API_KEY
 );

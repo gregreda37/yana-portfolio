@@ -127,6 +127,7 @@ export default function ImportResume() {
 
   // Working phase — live section data and revealed items
   const [workLabel, setWorkLabel] = useState('');
+  const [workError, setWorkError] = useState('');
   const [liveProfile, setLiveProfile] = useState(null);
   const [liveMetrics, setLiveMetrics] = useState(null);
   const [liveExperience, setLiveExperience] = useState(null);
@@ -140,11 +141,13 @@ export default function ImportResume() {
   // Reveal profile fields one by one when profile section arrives
   useEffect(() => {
     if (!liveProfile) return;
+    const fullName = [liveProfile.firstName, liveProfile.lastName].filter(Boolean).join(' ')
+      || liveProfile.name || '';
     const fields = [
-      { key: 'name', label: 'Name', value: [liveProfile.firstName, liveProfile.lastName].filter(Boolean).join(' ') },
-      { key: 'title', label: 'Title', value: liveProfile.title },
-      { key: 'location', label: 'Location', value: liveProfile.location },
-      { key: 'bio', label: 'Bio', value: liveProfile.bio1 },
+      { key: 'name',     label: 'Name',     value: fullName },
+      { key: 'title',    label: 'Title',    value: liveProfile.title || liveProfile.headline || '' },
+      { key: 'location', label: 'Location', value: liveProfile.location || '' },
+      { key: 'bio',      label: 'Bio',      value: liveProfile.bio1 || liveProfile.summary || liveProfile.bio || '' },
     ].filter(f => f.value);
 
     let i = 0;
@@ -199,6 +202,7 @@ export default function ImportResume() {
   const startAnalysis = async () => {
     if (!file) return;
     setError('');
+    setWorkError('');
     setPhase('working');
     setWorkLabel('Reading your resume…');
     setLiveProfile(null); setLiveMetrics(null); setLiveExperience(null);
@@ -207,7 +211,7 @@ export default function ImportResume() {
 
     await parseResumeStreaming(file, apiKey, {
       onProgress: (step) => {
-        if (step === 'streaming') setWorkLabel('AI is reading your resume…');
+        if (step === 'streaming') setWorkLabel('Reading with Yana…');
       },
       onSection: (name, data) => {
         detectedRef.current[name] = true;
@@ -223,8 +227,9 @@ export default function ImportResume() {
         }
       },
       onError: (msg) => {
-        setError(msg);
-        setPhase('upload');
+        console.error('Resume import error:', msg);
+        setWorkLabel('');
+        setWorkError(msg);
       },
       onComplete: (parsed) => {
         // Fill in any sections the stream detector missed
@@ -232,10 +237,15 @@ export default function ImportResume() {
         if (!detectedRef.current.metrics)    setLiveMetrics(parsed.metrics);
         if (!detectedRef.current.experience) setLiveExperience(parsed.experience);
 
-        // Wait for final reveal animations before transitioning
+        // Wait for final reveal animations then switch to review
         setTimeout(() => {
-          setForm(JSON.parse(JSON.stringify(parsed)));
-          setPhase('review');
+          try {
+            setForm(JSON.parse(JSON.stringify(parsed)));
+            setPhase('review');
+          } catch (e) {
+            console.error('Failed to prepare review form:', e);
+            setWorkError('Failed to prepare your profile for review — please try again.');
+          }
         }, 2200);
       },
     });
@@ -351,16 +361,36 @@ export default function ImportResume() {
       <div className="flex-1 overflow-y-auto px-4 py-10">
         <div className="w-full max-w-xl mx-auto space-y-5">
 
-          {/* Status pill */}
-          <div className="flex justify-center">
-            <div className="inline-flex items-center gap-2.5 bg-white border border-gray-100 rounded-full px-5 py-2.5 shadow-sm">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blush-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blush-500" />
-              </span>
-              <span className="font-body text-sm text-gray-700 font-medium">{workLabel}</span>
+          {/* Status pill / error state */}
+          {workError ? (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+              <FiAlertCircle className="text-red-400 mx-auto mb-3" size={22} />
+              <p className="font-body text-sm text-red-600 mb-1 font-semibold">Something went wrong</p>
+              <p className="font-body text-sm text-red-500 mb-5 leading-relaxed">{workError}</p>
+              <button
+                onClick={() => { setWorkError(''); setPhase('upload'); }}
+                className="font-body text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl px-6 py-2.5 hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                ← Try again
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <div className="inline-flex items-center gap-2.5 bg-white border border-gray-100 rounded-full px-5 py-2.5 shadow-sm">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blush-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blush-500" />
+                </span>
+                <span className="font-body text-sm text-gray-700 font-medium">{workLabel}</span>
+              </div>
+              <button
+                onClick={() => { setWorkError(''); setPhase('upload'); }}
+                className="font-body text-xs text-gray-300 hover:text-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
 
           {/* Profile card */}
           {(liveProfile || shownProfileFields.length > 0) && (
