@@ -114,7 +114,7 @@ export default function AdminLogin() {
             disabled={loading || googleLoading}
             className="btn-primary w-full mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Signing in…' : 'Sign In / Sign Up'}
           </button>
         </form>
 

@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage';
 import AdminLogin from './pages/AdminLogin';
 import SetupUsername from './pages/SetupUsername';
 import AdminDashboard from './admin/AdminDashboard';
+import ImportResume from './pages/ImportResume';
 import PublicPortfolio from './pages/PublicPortfolio';
 
 export default function App() {
@@ -27,6 +28,14 @@ export default function App() {
             <ProtectedRoute requireUsername>
               <DataProvider>
                 <AdminDashboard />
+              </DataProvider>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/import" element={
+            <ProtectedRoute requireUsername>
+              <DataProvider>
+                <ImportResume />
               </DataProvider>
             </ProtectedRoute>
           } />

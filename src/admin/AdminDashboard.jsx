@@ -14,7 +14,7 @@ import EditPageant from './EditPageant';
 import EditResumeRequests from './EditResumeRequests';
 import {
   FiUser, FiTrendingUp, FiBriefcase, FiHeart,
-  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar, FiInbox,
+  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar, FiInbox, FiUpload,
 } from 'react-icons/fi';
 
 const NAV = [
@@ -47,6 +47,7 @@ export default function AdminDashboard() {
   const { user, username, logout } = useAuth();
   const { firestoreLoaded, firestoreError } = useData();
   const navigate = useNavigate();
+  const goImport = () => navigate('/admin/import');
   const [active, setActive] = useState('profile');
   const [toast, setToast] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -116,14 +117,20 @@ export default function AdminDashboard() {
             ))}
           </nav>
 
-          {username && (
-            <div className="p-4 border-t border-gray-100">
-              <p className="font-body text-xs text-gray-400 text-center leading-snug">
-                Public URL<br />
+          <div className="p-3 border-t border-gray-100 space-y-2">
+            <button
+              onClick={goImport}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 font-body text-xs font-semibold text-blush-600 bg-blush-50 hover:bg-blush-100 rounded-xl transition-colors"
+            >
+              <FiUpload size={13} className="shrink-0" />
+              Import from Resume
+            </button>
+            {username && (
+              <p className="font-body text-xs text-gray-400 text-center leading-snug pt-1">
                 <span className="text-blush-500 font-semibold">findyana.com/{username}</span>
               </p>
-            </div>
-          )}
+            )}
+          </div>
         </aside>
 
         {/* Overlay for mobile sidebar */}

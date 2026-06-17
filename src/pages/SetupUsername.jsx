@@ -56,7 +56,7 @@ export default function SetupUsername() {
     try {
       await claimUsername(user.uid, value);
       updateUsername(value);
-      navigate('/admin', { replace: true });
+      navigate('/admin/import', { replace: true });
     } catch (err) {
       setError(err.message === 'Username taken' ? 'That username is already taken. Try another.' : 'Something went wrong. Please try again.');
     } finally {
