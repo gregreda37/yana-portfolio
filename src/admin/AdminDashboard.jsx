@@ -12,9 +12,10 @@ import EditBooks from './EditBooks';
 import EditSettings from './EditSettings';
 import EditPageant from './EditPageant';
 import EditResumeRequests from './EditResumeRequests';
+import EditAccount from './EditAccount';
 import {
   FiUser, FiTrendingUp, FiBriefcase, FiHeart,
-  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar, FiInbox, FiUpload,
+  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar, FiInbox, FiUpload, FiTrash2,
 } from 'react-icons/fi';
 
 const NAV = [
@@ -41,6 +42,7 @@ const EDITORS = {
   pageant:      EditPageant,
   settings:     EditSettings,
   inbox:        EditResumeRequests,
+  account:      EditAccount,
 };
 
 export default function AdminDashboard() {
@@ -106,21 +108,38 @@ export default function AdminDashboard() {
           flex flex-col transform transition-transform duration-200
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}>
-          <nav className="flex-1 py-4 overflow-y-auto">
-            {NAV.map(({ key, label, icon: Icon }) => (
+          <nav className="flex-1 py-4 overflow-y-auto flex flex-col">
+            <div className="flex-1">
+              {NAV.map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => { setActive(key); setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-5 py-2.5 font-body text-sm font-medium transition-colors text-left ${
+                    active === key
+                      ? 'bg-blush-50 text-blush-600 border-r-2 border-blush-400'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon size={15} className="shrink-0" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Account / danger zone — visually separated at the bottom */}
+            <div className="border-t border-gray-100 pt-2 pb-2">
               <button
-                key={key}
-                onClick={() => { setActive(key); setSidebarOpen(false); }}
+                onClick={() => { setActive('account'); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-5 py-2.5 font-body text-sm font-medium transition-colors text-left ${
-                  active === key
-                    ? 'bg-blush-50 text-blush-600 border-r-2 border-blush-400'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  active === 'account'
+                    ? 'bg-red-50 text-red-600 border-r-2 border-red-400'
+                    : 'text-gray-400 hover:bg-red-50 hover:text-red-500'
                 }`}
               >
-                <Icon size={15} className="shrink-0" />
-                {label}
+                <FiTrash2 size={15} className="shrink-0" />
+                Account
               </button>
-            ))}
+            </div>
           </nav>
 
         </aside>

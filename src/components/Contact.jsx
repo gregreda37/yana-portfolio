@@ -4,7 +4,6 @@ import { FiMail, FiSend, FiMapPin, FiLinkedin, FiInstagram, FiFacebook, FiTwitte
 import { SiTiktok } from 'react-icons/si';
 import { useData } from '../contexts/DataContext';
 import { submitContactMessage, submitResumeRequest } from '../firebase/db';
-import { sendContactEmail } from '../utils/sendContactEmail';
 
 const SOCIAL_ICONS = [
   { key: 'linkedin',  Icon: FiLinkedin,  label: 'LinkedIn' },
@@ -37,16 +36,6 @@ export default function Contact() {
     setStatus('sending');
     try {
       await submitContactMessage(uid, form);
-      // Send email notification to portfolio owner if they have an email set
-      if (profile.email) {
-        sendContactEmail({
-          senderName: form.name,
-          senderEmail: form.email,
-          subject: form.subject,
-          message: form.message,
-          ownerEmail: profile.email,
-        }).catch(err => console.warn('Contact email notification failed:', err.message));
-      }
       setStatus('sent');
     } catch {
       setStatus('error');

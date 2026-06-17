@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useData } from '../contexts/DataContext';
 import { parseResumeStreaming } from '../utils/parseResumeWithAI';
 import {
@@ -188,6 +189,7 @@ export default function ImportResume() {
 
   // phase: upload | working | review | saving
   const [phase, setPhase] = useState('upload');
+  const [fading, setFading] = useState(false);
   const [file, setFile] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
@@ -280,7 +282,10 @@ export default function ImportResume() {
 
     await parseResumeStreaming(file, {
       onProgress: (step) => {
-        if (step === 'streaming') { setWorkStep(1); setWorkEmoji('✨'); }
+        if (step === 'streaming') {
+          // Hold "Reading PDF" active for 1.5s before marking it complete
+          setTimeout(() => { setWorkStep(1); setWorkEmoji('✨'); }, 1500);
+        }
       },
       onSection: (name, data) => {
         detectedRef.current[name] = true;
@@ -305,16 +310,21 @@ export default function ImportResume() {
         if (!detectedRef.current.metrics)    setLiveMetrics(parsed.metrics);
         if (!detectedRef.current.experience) setLiveExperience(parsed.experience);
 
-        // Wait for final reveal animations then switch to review
+        // Wait for final reveal animations, fade out, then switch to review
         setTimeout(() => {
           try {
             setForm(JSON.parse(JSON.stringify(parsed)));
-            setPhase('review');
           } catch (e) {
             console.error('Failed to prepare review form:', e);
             setWorkError('Failed to prepare your profile for review — please try again.');
+            return;
           }
-        }, 2200);
+          setFading(true);
+          setTimeout(() => {
+            setPhase('review');
+            setFading(false);
+          }, 550);
+        }, 3800);
       },
     });
   };
@@ -338,17 +348,33 @@ export default function ImportResume() {
   // ── UPLOAD phase ─────────────────────────────────────────────────────────────
   if (phase === 'upload') return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Header />
+      </motion.div>
       <div className="flex-1 flex justify-center px-4 py-12 overflow-y-auto">
-        <div className="w-full max-w-xl">
+        <motion.div
+          className="w-full max-w-xl"
+          initial={{ opacity: 0, y: 32, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+        >
 
-          <div className="text-center mb-10">
+          <motion.div
+            className="text-center mb-10"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
+          >
             <div className="text-5xl mb-5">✨</div>
             <h1 className="font-display text-4xl text-gray-800 font-light mb-3">Import your resume</h1>
             <p className="font-body text-gray-400 max-w-md mx-auto leading-relaxed">
               Upload your PDF and watch AI build your entire portfolio live — then review and edit every detail before publishing.
             </p>
-          </div>
+          </motion.div>
 
 
           {/* Drop zone */}
@@ -357,28 +383,32 @@ export default function ImportResume() {
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
-            className={`bg-white rounded-2xl border-2 border-dashed p-14 text-center cursor-pointer transition-all mb-5 ${
-              dragging ? 'border-blush-400 bg-blush-50' :
-              file     ? 'border-green-300 bg-green-50/30' :
-                         'border-gray-200 hover:border-blush-300 hover:bg-blush-50/20'
+            className={`rounded-3xl border-2 py-14 px-8 text-center cursor-pointer transition-all duration-200 mb-5 ${
+              dragging ? 'border-blush-400 bg-blush-50/80 shadow-inner' :
+              file     ? 'border-green-300 bg-green-50/40 shadow-inner' :
+                         'border-gray-200 bg-white hover:border-blush-300 hover:bg-blush-50/30 hover:shadow-sm'
             }`}
           >
             <input ref={inputRef} type="file" accept=".pdf" className="sr-only" onChange={e => acceptFile(e.target.files[0])} />
             {file ? (
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <FiFile className="text-green-600" size={24} />
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-green-50 to-green-100 border border-green-200 flex items-center justify-center shadow-sm">
+                  <FiFile className="text-green-500" size={34} strokeWidth={1.5} />
                 </div>
-                <p className="font-body text-sm font-semibold text-gray-800">{file.name}</p>
-                <p className="font-body text-xs text-gray-400">{(file.size / 1024).toFixed(0)} KB · Click to change</p>
+                <div>
+                  <p className="font-body text-sm font-semibold text-gray-800 mb-1">{file.name}</p>
+                  <p className="font-body text-xs text-gray-400">{(file.size / 1024).toFixed(0)} KB · Click to change</p>
+                </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center">
-                  <FiUpload className="text-gray-400" size={24} />
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blush-50 to-blush-100 border border-blush-200 flex items-center justify-center shadow-sm">
+                  <FiUpload className="text-blush-400" size={34} strokeWidth={1.5} />
                 </div>
-                <p className="font-body text-sm font-semibold text-gray-700">Drop your resume here</p>
-                <p className="font-body text-xs text-gray-400 mt-1">PDF only · or click to browse</p>
+                <div>
+                  <p className="font-body text-sm font-semibold text-gray-700 mb-1">Drop your resume here</p>
+                  <p className="font-body text-xs text-gray-400">PDF only · or click to browse</p>
+                </div>
               </div>
             )}
           </div>
@@ -402,14 +432,18 @@ export default function ImportResume() {
               Skip and set up manually
             </button>
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 
   // ── WORKING phase (live streaming reveal) ─────────────────────────────────────
   if (phase === 'working') return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <motion.div
+      className="min-h-screen bg-gray-50 flex flex-col"
+      animate={{ opacity: fading ? 0 : 1 }}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
+    >
       <Header />
       <div className="flex-1 overflow-y-auto px-4 py-10">
         <div className="w-full max-w-xl mx-auto space-y-5">
@@ -562,12 +596,17 @@ export default function ImportResume() {
 
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 
   // ── REVIEW phase ──────────────────────────────────────────────────────────────
   if (phase === 'review' && form) return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <motion.div
+      className="min-h-screen bg-gray-50 flex flex-col"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
       <Header />
       <div className="flex-1 overflow-y-auto px-4 py-10 pb-32">
         <div className="w-full max-w-2xl mx-auto">
@@ -760,7 +799,7 @@ export default function ImportResume() {
           Apply to Portfolio <FiArrowRight size={14} />
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 
   // ── SAVING phase ──────────────────────────────────────────────────────────────

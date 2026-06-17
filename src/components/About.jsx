@@ -19,6 +19,12 @@ export default function About() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
+  const hasName = profile?.firstName || profile?.lastName;
+  const hasBio = profile?.bio1 || profile?.bio2;
+  const hasSkills = (experience?.skills ?? []).length > 0;
+  const hasSpecialty = healthcare?.summary;
+  if (!hasName && !hasBio && !hasSkills && !hasSpecialty && !profile?.photo) return null;
+
   return (
     <section id="about" className="py-24 px-6 bg-white" ref={ref}>
       <div className="max-w-6xl mx-auto">
@@ -58,10 +64,13 @@ export default function About() {
           >
             <p className="section-subtitle">About Me</p>
             <h2 className="section-title mb-6">
-              Results-driven sales professional with a heart for people.
+              {[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'About Me'}
             </h2>
-            <p className="font-body text-gray-500 leading-relaxed mb-4">{profile.bio1}</p>
-            <p className="font-body text-gray-500 leading-relaxed mb-8">{profile.bio2}</p>
+            {profile.bio1 && <p className="font-body text-gray-500 leading-relaxed mb-4">{profile.bio1}</p>}
+            {profile.bio2 && <p className="font-body text-gray-500 leading-relaxed mb-8">{profile.bio2}</p>}
+            {!hasBio && profile.title && (
+              <p className="font-body text-lg text-accent-500 font-medium mb-8">{profile.title}</p>
+            )}
 
             {/* Skills */}
             <div className="flex flex-wrap gap-2 mb-8">

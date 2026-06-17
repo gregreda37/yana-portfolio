@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { getResumeRequests, updateResumeRequest, getContactMessages, markContactRead } from '../firebase/db';
 import { FiFileText, FiMail, FiCheck, FiX, FiDownload, FiClock, FiRefreshCw, FiMessageSquare } from 'react-icons/fi';
-import { sendResumeEmail } from '../utils/sendResumeEmail';
 
 // ── PDF generation ────────────────────────────────────────────────────────────
 // Opens a print-ready resume in a new tab. Click "Print / Save as PDF" inside.
@@ -259,18 +258,11 @@ export default function EditResumeRequests({ onToast }) {
 
   const markSent = async (req) => {
     try {
-      await sendResumeEmail({
-        requesterEmail: req.requesterEmail,
-        requesterName: req.requesterName,
-        portfolioData,
-        username,
-      });
       await updateResumeRequest(user.uid, req.id, { status: 'sent', sentAt: new Date() });
       setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'sent' } : r));
-      onToast(`Resume emailed to ${req.requesterEmail}!`);
-    } catch (err) {
-      console.error('Resume email failed:', err);
-      onToast(`Email failed: ${err.message ?? 'Unknown error'}`);
+      onToast('Marked as sent.');
+    } catch {
+      onToast('Update failed — try again.');
     }
   };
 
@@ -482,11 +474,17 @@ function RequestCard({ req, portfolioData, onMarkSent, onDecline, compact = fals
 
           {req.status === 'pending' && (
             <>
+              <a
+                href={`mailto:${req.requesterEmail}?subject=Resume from ${portfolioData?.profile?.firstName ?? 'Yana'}&body=Hi ${req.requesterName},%0A%0APlease find my resume attached.%0A%0ABest regards`}
+                className="flex items-center gap-1.5 font-body text-xs font-semibold text-blush-600 bg-blush-50 hover:bg-blush-100 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <FiMail size={12} /> Email Them
+              </a>
               <button
                 onClick={() => onMarkSent(req)}
                 className="flex items-center gap-1.5 font-body text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 px-3 py-1.5 rounded-lg transition-colors"
               >
-                <FiMail size={12} /> Send Resume
+                <FiCheck size={12} /> Mark Sent
               </button>
               <button
                 onClick={() => onDecline(req)}

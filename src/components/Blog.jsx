@@ -21,6 +21,8 @@ export default function Blog() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
 
+  if (!blogPosts.length && !recentReads.length) return null;
+
   return (
     <section id="blog" className="py-24 px-6 bg-white" ref={ref}>
       <div className="max-w-6xl mx-auto">

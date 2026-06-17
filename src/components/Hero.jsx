@@ -71,14 +71,16 @@ export default function Hero() {
           Hi, I'm <span className="text-accent-500 italic">{profile.firstName}.</span>
         </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.0 }}
-          className="font-body text-lg md:text-xl text-gray-500 leading-relaxed mb-10 max-w-xl mx-auto"
-        >
-          I build lasting client relationships, drive meaningful revenue, and help organizations find solutions they actually love.
-        </motion.p>
+        {profile.bio1 && (
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+            className="font-body text-lg md:text-xl text-gray-500 leading-relaxed mb-10 max-w-xl mx-auto"
+          >
+            {profile.bio1}
+          </motion.p>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}

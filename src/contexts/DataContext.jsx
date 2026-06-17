@@ -2,40 +2,24 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { getSection, saveSection as persistSection } from '../firebase/db';
 import { useAuth } from './AuthContext';
 
-import { metrics as defaultMetrics } from '../data/metrics';
-import { experience as defaultJobs, education as defaultEducation, skills as defaultSkills, healthcareBackground as defaultHealthcare } from '../data/experience';
-import { testimonials as defaultTestimonials } from '../data/testimonials';
-import { blogPosts as defaultBlog } from '../data/blog';
-import { recentReads as defaultBooks } from '../data/books';
-import { pageantData as defaultPageant } from '../data/pageant';
-
-const defaultProfile = {
-  firstName: 'Your',
-  lastName: 'Name',
-  title: 'Sales Professional',
-  bio1: "With years in B2B sales, I've built a career on one principle: genuine relationships close deals.",
-  bio2: "I specialize in complex sales cycles, enterprise accounts, and building the internal champions that turn conversations into closed-won.",
-  location: 'New York, NY',
-  email: '',
-  linkedin: '',
-  instagram: '',
-  facebook: '',
-  tiktok: '',
-  twitter: '',
-  youtube: '',
-  availabilityNote: 'New opportunities in enterprise or mid-market SaaS sales',
-  photo: '',
-};
-
 export const DEFAULTS = {
-  profile: defaultProfile,
-  metrics: { items: defaultMetrics },
-  experience: { jobs: defaultJobs, education: defaultEducation, skills: defaultSkills },
-  healthcare: { label: 'Healthcare Background', ...defaultHealthcare },
-  testimonials: { items: defaultTestimonials },
-  blog: { posts: defaultBlog },
-  books: { items: defaultBooks },
-  pageant: defaultPageant,
+  profile: {
+    firstName: '', lastName: '', title: '',
+    bio1: '', bio2: '', location: '', email: '',
+    linkedin: '', instagram: '', facebook: '',
+    tiktok: '', twitter: '', youtube: '',
+    availabilityNote: '', photo: '',
+  },
+  metrics: { items: [] },
+  experience: { jobs: [], education: [], skills: [] },
+  healthcare: { label: 'Specialty Background', summary: '', highlights: [] },
+  testimonials: { items: [] },
+  blog: { posts: [] },
+  books: { items: [] },
+  pageant: {
+    heading: '', currentTitle: '', organization: '',
+    platform: '', bio: '', titles: [], achievements: [], appearances: [],
+  },
   settings: {
     accentColor: 'blush',
     visible: {
@@ -86,7 +70,7 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
             updates.profile.firstName = parts[0] ?? '';
             updates.profile.lastName = parts.slice(1).join(' ') ?? '';
           }
-          setData(prev => ({ ...prev, ...updates }));
+          setData({ ...DEFAULTS, ...updates });
         } else if (!readOnly) {
           // ── 2. First-time user: seed default data ───────────────────────
           try {

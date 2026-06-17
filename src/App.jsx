@@ -4,6 +4,7 @@ import { DataProvider } from './contexts/DataContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import AdminLogin from './pages/AdminLogin';
+import AdminSignup from './pages/AdminSignup';
 import SetupUsername from './pages/SetupUsername';
 import AdminDashboard from './admin/AdminDashboard';
 import ImportResume from './pages/ImportResume';
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
 
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/signup" element={<AdminSignup />} />
 
           <Route path="/admin/setup" element={
             <ProtectedRoute>

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
@@ -36,12 +37,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  const signup = (email, password) => createUserWithEmailAndPassword(auth, email, password);
   const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
   const logout = () => signOut(auth);
   const updateUsername = useCallback((uname) => setUsername(uname), []);
 
   return (
-    <AuthContext.Provider value={{ user, username, authLoading, login, loginWithGoogle, logout, updateUsername }}>
+    <AuthContext.Provider value={{ user, username, authLoading, login, signup, loginWithGoogle, logout, updateUsername }}>
       {children}
     </AuthContext.Provider>
   );

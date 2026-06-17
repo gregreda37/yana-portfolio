@@ -153,8 +153,14 @@ function normalizeResponse(raw) {
 
   const profile = typeof raw.profile === 'object' && raw.profile ? raw.profile : {};
 
+  const VALID_ICONS = new Set(['target', 'dollar', 'users', 'heart']);
   const rawItems = Array.isArray(raw.metrics?.items) ? raw.metrics.items : [];
-  const items = rawItems.map((m, i) => ({ ...m, id: m.id ?? now + i }));
+  const items = rawItems.map((m, i) => ({
+    ...m,
+    id: m.id ?? now + i,
+    icon: VALID_ICONS.has(m.icon) ? m.icon : 'target',
+    value: typeof m.value === 'number' ? m.value : parseFloat(m.value) || 0,
+  }));
 
   const rawJobs = Array.isArray(raw.experience?.jobs) ? raw.experience.jobs : [];
   const rawEdu  = Array.isArray(raw.experience?.education) ? raw.experience.education : [];
@@ -172,9 +178,13 @@ function normalizeResponse(raw) {
     },
     metrics: { items },
     experience: {
-      jobs:      rawJobs.map((j, i) => ({ ...j, id: j.id ?? now + 100 + i })),
+      jobs: rawJobs.map((j, i) => ({
+        ...j,
+        id: j.id ?? now + 100 + i,
+        highlights: Array.isArray(j.highlights) ? j.highlights : [],
+      })),
       education: rawEdu.map((e, i) => ({ ...e, id: e.id ?? now + 200 + i })),
-      skills:    rawSkills,
+      skills: rawSkills,
     },
   };
 }

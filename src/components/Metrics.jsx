@@ -40,6 +40,8 @@ export default function Metrics() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
 
+  if (!metrics?.items?.length) return null;
+
   return (
     <section id="metrics" className="py-24 px-6 bg-gradient-to-br from-accent-50 to-accent-100" ref={ref}>
       <div className="max-w-6xl mx-auto">
@@ -53,7 +55,7 @@ export default function Metrics() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {(metrics.items ?? []).map((m, i) => {
-            const Icon = iconMap[m.icon];
+            const Icon = iconMap[m.icon] ?? FiTarget;
             return (
               <motion.div
                 key={m.id}

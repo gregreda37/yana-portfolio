@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, updateDoc, query, orderBy } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { db } from './config';
 
 export async function getSection(uid, section) {
@@ -71,4 +71,34 @@ export async function getResumeRequests(uid) {
 
 export async function updateResumeRequest(uid, requestId, updates) {
   await updateDoc(doc(db, 'users', uid, 'resumeRequests', requestId), updates);
+}
+
+// ── Account deletion ─────────────────────────────────────────────────────────
+
+export async function deleteAllUserData(uid, username) {
+  const PORTFOLIO_SECTIONS = [
+    'profile', 'metrics', 'experience', 'healthcare',
+    'testimonials', 'blog', 'books', 'pageant', 'settings',
+  ];
+
+  // Portfolio section documents
+  await Promise.all(
+    PORTFOLIO_SECTIONS.map(s => deleteDoc(doc(db, 'users', uid, 'portfolio', s)))
+  );
+
+  // Contact messages subcollection
+  const msgSnap = await getDocs(collection(db, 'users', uid, 'contactMessages'));
+  await Promise.all(msgSnap.docs.map(d => deleteDoc(d.ref)));
+
+  // Resume requests subcollection
+  const reqSnap = await getDocs(collection(db, 'users', uid, 'resumeRequests'));
+  await Promise.all(reqSnap.docs.map(d => deleteDoc(d.ref)));
+
+  // Parent user document
+  await deleteDoc(doc(db, 'users', uid));
+
+  // Username → uid reverse-lookup
+  if (username) {
+    await deleteDoc(doc(db, 'usernames', username));
+  }
 }

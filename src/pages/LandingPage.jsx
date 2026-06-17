@@ -118,7 +118,7 @@ function Header() {
             Sign in
           </Link>
           <Link
-            to="/admin/login"
+            to="/admin/signup"
             className="font-body text-sm font-semibold bg-blush-500 hover:bg-blush-600 text-white px-5 py-2 rounded-full transition-all shadow-sm hover:shadow"
           >
             Get started
@@ -186,7 +186,7 @@ function Hero() {
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
           <Link
-            to="/admin/login"
+            to="/admin/signup"
             className="inline-flex items-center justify-center gap-2 bg-blush-500 hover:bg-blush-600 text-white font-body font-semibold text-base px-8 py-4 rounded-full transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
             Claim your portfolio <FiArrowRight size={16} />
@@ -412,7 +412,7 @@ function HowItWorksSection() {
 
         <Reveal delay={0.4} className="text-center mt-16">
           <Link
-            to="/admin/login"
+            to="/admin/signup"
             className="inline-flex items-center gap-3 bg-blush-500 hover:bg-blush-600 text-white font-body font-semibold text-base px-10 py-4 rounded-full transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
             Start for free <FiArrowRight size={16} />
@@ -445,7 +445,7 @@ function CtaSection() {
             Create your Yana portfolio today. Share a link that shows the world not just where you've been — but who you're becoming.
           </p>
           <Link
-            to="/admin/login"
+            to="/admin/signup"
             className="inline-flex items-center gap-3 bg-gray-900 hover:bg-gray-800 text-white font-body font-semibold text-lg px-12 py-5 rounded-full transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
           >
             Claim your URL <FiArrowRight size={18} />
@@ -470,7 +470,7 @@ function LandingFooter() {
         </p>
         <div className="flex items-center gap-6">
           <Link to="/admin/login" className="font-body text-xs hover:text-blush-400 transition-colors">Sign in</Link>
-          <Link to="/admin/login" className="font-body text-xs hover:text-blush-400 transition-colors">Create portfolio</Link>
+          <Link to="/admin/signup" className="font-body text-xs hover:text-blush-400 transition-colors">Create portfolio</Link>
         </div>
       </div>
     </footer>

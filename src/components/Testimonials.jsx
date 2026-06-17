@@ -20,6 +20,8 @@ export default function Testimonials() {
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [activeIdx, setActiveIdx] = useState(0);
 
+  if (!testimonials.length) return null;
+
   const prev = () => setActiveIdx(i => (i - 1 + testimonials.length) % testimonials.length);
   const next = () => setActiveIdx(i => (i + 1) % testimonials.length);
 

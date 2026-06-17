@@ -8,6 +8,11 @@ export default function Experience() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
 
+  const jobs = experience?.jobs ?? [];
+  const education = experience?.education ?? [];
+  const skills = experience?.skills ?? [];
+  if (!jobs.length && !education.length && !skills.length) return null;
+
   return (
     <section id="experience" className="py-24 px-6 bg-white" ref={ref}>
       <div className="max-w-5xl mx-auto">
@@ -53,7 +58,7 @@ export default function Experience() {
                         <span className="font-body">{job.location}</span>
                       </div>
                       <ul className="space-y-2">
-                        {job.highlights.map((h, idx) => (
+                        {(job.highlights ?? []).map((h, idx) => (
                           <li key={idx} className="flex gap-3 font-body text-sm text-gray-500 leading-relaxed">
                             <span className="text-accent-300 mt-1 shrink-0">◆</span>
                             {h}
