@@ -30,12 +30,15 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == uid;
       }
 
+      // ── Contact messages from portfolio visitors ──────────────────────────
+      match /contactMessages/{messageId} {
+        allow create: if true;
+        allow read, update, delete: if request.auth != null && request.auth.uid == uid;
+      }
+
       // ── Resume requests from portfolio visitors ────────────────────────────
       match /resumeRequests/{requestId} {
-        // Anyone can submit a request (public portfolio visitors, no auth required)
         allow create: if request.resource.data.status == 'pending';
-
-        // Only the portfolio owner can read, update, or delete requests
         allow read, update, delete: if request.auth != null && request.auth.uid == uid;
       }
     }

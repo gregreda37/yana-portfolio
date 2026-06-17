@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
-import { getResumeRequests, updateResumeRequest } from '../firebase/db';
-import { FiFileText, FiMail, FiCheck, FiX, FiDownload, FiClock, FiRefreshCw } from 'react-icons/fi';
+import { getResumeRequests, updateResumeRequest, getContactMessages, markContactRead } from '../firebase/db';
+import { FiFileText, FiMail, FiCheck, FiX, FiDownload, FiClock, FiRefreshCw, FiMessageSquare } from 'react-icons/fi';
 import { sendResumeEmail } from '../utils/sendResumeEmail';
 
 // ── PDF generation ────────────────────────────────────────────────────────────
@@ -234,16 +234,22 @@ export default function EditResumeRequests({ onToast }) {
   const { user, username } = useAuth();
   const portfolioData = useData();
   const [requests, setRequests] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('messages'); // 'messages' | 'resumes'
 
   const load = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const data = await getResumeRequests(user.uid);
-      setRequests(data);
+      const [reqs, msgs] = await Promise.all([
+        getResumeRequests(user.uid),
+        getContactMessages(user.uid),
+      ]);
+      setRequests(reqs);
+      setMessages(msgs);
     } catch {
-      onToast('Failed to load requests.');
+      onToast('Failed to load inbox.');
     } finally {
       setLoading(false);
     }
@@ -278,70 +284,159 @@ export default function EditResumeRequests({ onToast }) {
     }
   };
 
+  const handleMarkRead = async (msg) => {
+    if (msg.read) return;
+    try {
+      await markContactRead(user.uid, msg.id);
+      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, read: true } : m));
+    } catch { /* silent */ }
+  };
+
   const pending = requests.filter(r => r.status === 'pending');
   const handled = requests.filter(r => r.status !== 'pending');
+  const unreadCount = messages.filter(m => !m.read).length;
+  const pendingCount = pending.length;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <h2 className="admin-section-title">Resume Requests</h2>
-        <button onClick={load} className="text-gray-400 hover:text-blush-500 transition-colors" aria-label="Refresh">
+        <h2 className="admin-section-title">Inbox</h2>
+        <button onClick={load} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Refresh">
           <FiRefreshCw size={15} />
         </button>
       </div>
-      <p className="admin-section-desc">Visitors who requested a formal copy of your resume.</p>
+      <p className="admin-section-desc">Messages and resume requests from your portfolio visitors.</p>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mt-5 mb-6">
+        <button
+          onClick={() => setTab('messages')}
+          className={`flex items-center gap-2 font-body text-sm font-medium px-4 py-2 rounded-full transition-colors ${
+            tab === 'messages' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          }`}
+        >
+          <FiMessageSquare size={13} />
+          Messages
+          {unreadCount > 0 && (
+            <span className="bg-pink-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setTab('resumes')}
+          className={`flex items-center gap-2 font-body text-sm font-medium px-4 py-2 rounded-full transition-colors ${
+            tab === 'resumes' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          }`}
+        >
+          <FiFileText size={13} />
+          Resume Requests
+          {pendingCount > 0 && (
+            <span className="bg-amber-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+              {pendingCount}
+            </span>
+          )}
+        </button>
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-7 h-7 border-2 border-blush-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-7 h-7 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : requests.length === 0 ? (
-        <div className="admin-card mt-6 flex flex-col items-center justify-center py-16 text-center">
-          <FiFileText size={32} className="text-gray-200 mb-4" />
-          <p className="font-body text-sm text-gray-400">No requests yet.</p>
-          <p className="font-body text-xs text-gray-300 mt-1">They'll appear here when visitors use the resume request form on your portfolio.</p>
-        </div>
+      ) : tab === 'messages' ? (
+        messages.length === 0 ? (
+          <div className="admin-card flex flex-col items-center justify-center py-16 text-center">
+            <FiMessageSquare size={32} className="text-gray-200 mb-4" />
+            <p className="font-body text-sm text-gray-400">No messages yet.</p>
+            <p className="font-body text-xs text-gray-300 mt-1">Contact form submissions from your portfolio will appear here.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map(msg => (
+              <MessageCard key={msg.id} msg={msg} onRead={handleMarkRead} />
+            ))}
+          </div>
+        )
       ) : (
-        <div className="mt-6 space-y-8">
-
-          {pending.length > 0 && (
-            <div>
-              <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
-                Pending · {pending.length}
-              </p>
-              <div className="space-y-4">
-                {pending.map(req => (
-                  <RequestCard
-                    key={req.id}
-                    req={req}
-                    portfolioData={portfolioData}
-                    onMarkSent={markSent}
-                    onDecline={decline}
-                  />
-                ))}
+        requests.length === 0 ? (
+          <div className="admin-card flex flex-col items-center justify-center py-16 text-center">
+            <FiFileText size={32} className="text-gray-200 mb-4" />
+            <p className="font-body text-sm text-gray-400">No resume requests yet.</p>
+            <p className="font-body text-xs text-gray-300 mt-1">They'll appear here when visitors use the resume request form.</p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {pending.length > 0 && (
+              <div>
+                <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
+                  Pending · {pending.length}
+                </p>
+                <div className="space-y-4">
+                  {pending.map(req => (
+                    <RequestCard key={req.id} req={req} portfolioData={portfolioData} onMarkSent={markSent} onDecline={decline} />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {handled.length > 0 && (
-            <div>
-              <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
-                History
-              </p>
-              <div className="space-y-3">
-                {handled.map(req => (
-                  <RequestCard
-                    key={req.id}
-                    req={req}
-                    portfolioData={portfolioData}
-                    onMarkSent={markSent}
-                    onDecline={decline}
-                    compact
-                  />
-                ))}
+            )}
+            {handled.length > 0 && (
+              <div>
+                <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">History</p>
+                <div className="space-y-3">
+                  {handled.map(req => (
+                    <RequestCard key={req.id} req={req} portfolioData={portfolioData} onMarkSent={markSent} onDecline={decline} compact />
+                  ))}
+                </div>
               </div>
+            )}
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
+// ── Message card ──────────────────────────────────────────────────────────────
+function MessageCard({ msg, onRead }) {
+  const [expanded, setExpanded] = useState(false);
+  const date = msg.sentAt?.toDate?.()?.toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  }) ?? '—';
+
+  const toggle = () => {
+    setExpanded(e => !e);
+    onRead(msg);
+  };
+
+  return (
+    <div className={`admin-card cursor-pointer transition-all ${msg.read ? 'opacity-70' : 'border-l-4 border-l-pink-400'}`} onClick={toggle}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-9 h-9 bg-pink-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+            <FiMessageSquare className="text-pink-500" size={14} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-body text-sm font-semibold text-gray-800">{msg.name}</p>
+              {!msg.read && <span className="font-body text-xs font-bold text-pink-500">New</span>}
             </div>
-          )}
+            <a href={`mailto:${msg.email}`} onClick={e => e.stopPropagation()} className="font-body text-xs text-gray-400 hover:underline">{msg.email}</a>
+            <p className="font-body text-xs text-gray-500 font-medium mt-1">{msg.subject}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="font-body text-xs text-gray-300">{date}</span>
+        </div>
+      </div>
+      {expanded && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <p className="font-body text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+          <a
+            href={`mailto:${msg.email}?subject=Re: ${msg.subject}`}
+            onClick={e => e.stopPropagation()}
+            className="inline-flex items-center gap-1.5 mt-4 font-body text-xs font-semibold text-white bg-gray-900 hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <FiMail size={11} /> Reply
+          </a>
         </div>
       )}
     </div>
@@ -358,12 +453,12 @@ function RequestCard({ req, portfolioData, onMarkSent, onDecline, compact = fals
     <div className={`admin-card ${compact ? 'opacity-70' : ''}`}>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 bg-blush-100 rounded-xl flex items-center justify-center shrink-0">
-            <FiMail className="text-blush-500" size={16} />
+          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center shrink-0">
+            <FiMail className="text-amber-500" size={16} />
           </div>
           <div>
             <p className="font-body text-sm font-semibold text-gray-800">{req.requesterName}</p>
-            <a href={`mailto:${req.requesterEmail}`} className="font-body text-xs text-blush-500 hover:underline">
+            <a href={`mailto:${req.requesterEmail}`} className="font-body text-xs text-gray-500 hover:underline">
               {req.requesterEmail}
             </a>
             {req.message && (

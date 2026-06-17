@@ -28,6 +28,29 @@ export async function getUidByUsername(username) {
   return snap.exists() ? snap.data().uid : null;
 }
 
+// ── Contact messages ─────────────────────────────────────────────────────────
+
+export async function submitContactMessage(portfolioUid, { name, email, subject, message }) {
+  await addDoc(collection(db, 'users', portfolioUid, 'contactMessages'), {
+    name,
+    email,
+    subject,
+    message,
+    sentAt: serverTimestamp(),
+    read: false,
+  });
+}
+
+export async function getContactMessages(uid) {
+  const q = query(collection(db, 'users', uid, 'contactMessages'), orderBy('sentAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function markContactRead(uid, messageId) {
+  await updateDoc(doc(db, 'users', uid, 'contactMessages', messageId), { read: true });
+}
+
 // ── Resume requests ─────────────────────────────────────────────────────────
 
 export async function submitResumeRequest(portfolioUid, { requesterName, requesterEmail, message }) {
