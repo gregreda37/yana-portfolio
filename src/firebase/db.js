@@ -69,6 +69,16 @@ export async function getResumeRequests(uid) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+export async function getInboxCount(uid) {
+  const [reqSnap, msgSnap] = await Promise.all([
+    getDocs(collection(db, 'users', uid, 'resumeRequests')),
+    getDocs(collection(db, 'users', uid, 'contactMessages')),
+  ]);
+  const pending = reqSnap.docs.filter(d => d.data().status === 'pending').length;
+  const unread  = msgSnap.docs.filter(d => !d.data().read).length;
+  return pending + unread;
+}
+
 export async function updateResumeRequest(uid, requestId, updates) {
   await updateDoc(doc(db, 'users', uid, 'resumeRequests', requestId), updates);
 }
@@ -78,7 +88,7 @@ export async function updateResumeRequest(uid, requestId, updates) {
 export async function deleteAllUserData(uid, username) {
   const PORTFOLIO_SECTIONS = [
     'profile', 'metrics', 'experience', 'healthcare',
-    'testimonials', 'blog', 'books', 'pageant', 'settings',
+    'testimonials', 'blog', 'books', 'settings',
   ];
 
   // Portfolio section documents

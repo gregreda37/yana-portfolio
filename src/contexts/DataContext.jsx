@@ -16,10 +16,6 @@ export const DEFAULTS = {
   testimonials: { items: [] },
   blog: { posts: [] },
   books: { items: [] },
-  pageant: {
-    heading: '', currentTitle: '', organization: '',
-    platform: '', bio: '', titles: [], achievements: [], appearances: [],
-  },
   settings: {
     accentColor: 'blush',
     visible: {

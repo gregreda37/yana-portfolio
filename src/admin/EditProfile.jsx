@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { uploadAsset } from '../firebase/storage';
@@ -14,7 +14,7 @@ const SOCIALS = [
 ];
 
 // Shows a static URL prefix — user types just their handle
-function SocialField({ label, base, prefix, value, onChange }) {
+function SocialField({ label, base, prefix, value, onChange, yanaField }) {
   const handle = value?.startsWith(base) ? value.slice(base.length) : (value ?? '');
   return (
     <div>
@@ -28,6 +28,7 @@ function SocialField({ label, base, prefix, value, onChange }) {
           value={handle}
           onChange={e => onChange(e.target.value ? base + e.target.value : '')}
           placeholder="yourhandle"
+          data-yana-field={yanaField}
           className="flex-1 font-body text-sm px-3 py-2.5 focus:outline-none bg-white min-w-0"
         />
       </div>
@@ -36,7 +37,7 @@ function SocialField({ label, base, prefix, value, onChange }) {
 }
 
 // Defined at module level — stable reference, never causes remount on keystroke
-function Field({ label, type = 'text', rows, value, onChange }) {
+function Field({ label, type = 'text', rows, value, onChange, yanaField }) {
   return (
     <div>
       <label className="admin-label">{label}</label>
@@ -45,6 +46,7 @@ function Field({ label, type = 'text', rows, value, onChange }) {
           rows={rows}
           value={value ?? ''}
           onChange={onChange}
+          data-yana-field={yanaField}
           className="admin-input resize-none"
         />
       ) : (
@@ -52,6 +54,7 @@ function Field({ label, type = 'text', rows, value, onChange }) {
           type={type}
           value={value ?? ''}
           onChange={onChange}
+          data-yana-field={yanaField}
           className="admin-input"
         />
       )}
@@ -59,7 +62,7 @@ function Field({ label, type = 'text', rows, value, onChange }) {
   );
 }
 
-export default function EditProfile({ onToast }) {
+const EditProfile = forwardRef(function EditProfile({ onToast }, ref) {
   const { profile, saveSection } = useData();
   const { user } = useAuth();
   const [form, setForm] = useState({ ...profile });
@@ -67,6 +70,39 @@ export default function EditProfile({ onToast }) {
   const [uploading, setUploading] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Always-current copy of form for use inside imperative handle
+  const formRef = useRef(form);
+  useEffect(() => { formRef.current = form; }, [form]);
+
+  useImperativeHandle(ref, () => ({
+    async typewriteField(field, newValue) {
+      // Scroll to the target field and focus it
+      const el = document.querySelector(`[data-yana-field="${field}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      await new Promise(r => setTimeout(r, 450));
+      el?.focus();
+
+      // Clear then typewrite
+      setForm(f => ({ ...f, [field]: '' }));
+      await new Promise(r => setTimeout(r, 80));
+
+      const delay = newValue.length > 60 ? 12 : 22;
+      for (let i = 1; i <= newValue.length; i++) {
+        setForm(f => ({ ...f, [field]: newValue.slice(0, i) }));
+        await new Promise(r => setTimeout(r, delay));
+      }
+
+      // Auto-save with the fully-typed value
+      await new Promise(r => setTimeout(r, 400));
+      try {
+        await saveSection('profile', { ...formRef.current, [field]: newValue });
+        onToast?.('✨ Profile updated by Yana!');
+      } catch {
+        onToast?.('Save failed — please try again.');
+      }
+    },
+  }));
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -138,19 +174,19 @@ export default function EditProfile({ onToast }) {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-5 mt-4">
-        <Field label="First Name"         value={form.firstName}        onChange={e => set('firstName', e.target.value)} />
-        <Field label="Last Name"          value={form.lastName}         onChange={e => set('lastName', e.target.value)} />
-        <Field label="Title / Tagline"    value={form.title}            onChange={e => set('title', e.target.value)} />
+        <Field label="First Name"         value={form.firstName}        onChange={e => set('firstName', e.target.value)} yanaField="firstName" />
+        <Field label="Last Name"          value={form.lastName}         onChange={e => set('lastName', e.target.value)} yanaField="lastName" />
+        <Field label="Title / Tagline"    value={form.title}            onChange={e => set('title', e.target.value)} yanaField="title" />
         <div className="sm:col-span-2">
-          <Field label="Bio — Paragraph 1" rows={3} value={form.bio1}   onChange={e => set('bio1', e.target.value)} />
+          <Field label="Bio — Paragraph 1" rows={3} value={form.bio1}   onChange={e => set('bio1', e.target.value)} yanaField="bio1" />
         </div>
         <div className="sm:col-span-2">
-          <Field label="Bio — Paragraph 2" rows={3} value={form.bio2}   onChange={e => set('bio2', e.target.value)} />
+          <Field label="Bio — Paragraph 2" rows={3} value={form.bio2}   onChange={e => set('bio2', e.target.value)} yanaField="bio2" />
         </div>
-        <Field label="Location"           value={form.location}         onChange={e => set('location', e.target.value)} />
-        <Field label="Email"   type="email" value={form.email}          onChange={e => set('email', e.target.value)} />
+        <Field label="Location"           value={form.location}         onChange={e => set('location', e.target.value)} yanaField="location" />
+        <Field label="Email"   type="email" value={form.email}          onChange={e => set('email', e.target.value)} yanaField="email" />
         <div className="sm:col-span-2">
-          <Field label="Availability Note (sidebar card)" value={form.availabilityNote} onChange={e => set('availabilityNote', e.target.value)} />
+          <Field label="Availability Note (sidebar card)" value={form.availabilityNote} onChange={e => set('availabilityNote', e.target.value)} yanaField="availabilityNote" />
         </div>
       </div>
 
@@ -166,6 +202,7 @@ export default function EditProfile({ onToast }) {
               prefix={prefix}
               value={form[key]}
               onChange={val => set(key, val)}
+              yanaField={key}
             />
           ))}
         </div>
@@ -178,4 +215,6 @@ export default function EditProfile({ onToast }) {
       </div>
     </div>
   );
-}
+});
+
+export default EditProfile;

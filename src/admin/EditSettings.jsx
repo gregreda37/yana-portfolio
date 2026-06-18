@@ -16,7 +16,6 @@ const VISIBILITY_OPTIONS = [
   { key: 'specialty',    label: 'Specialty Highlight',    desc: 'Your custom background section' },
   { key: 'testimonials', label: 'Testimonials',           desc: 'Client quotes and reviews' },
   { key: 'blog',         label: 'Blog & Recent Reads',    desc: 'Insights and book notes' },
-  { key: 'pageant',      label: 'Pageant & Titles',       desc: 'Crown experience and awards' },
   { key: 'contact',      label: 'Contact Form',           desc: 'Get in touch section' },
 ];
 

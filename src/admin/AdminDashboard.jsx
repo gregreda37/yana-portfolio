@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { useNavigate } from 'react-router-dom';
+import { getInboxCount } from '../firebase/db';
 import EditProfile from './EditProfile';
 import EditMetrics from './EditMetrics';
 import EditExperience from './EditExperience';
@@ -10,13 +11,13 @@ import EditTestimonials from './EditTestimonials';
 import EditBlog from './EditBlog';
 import EditBooks from './EditBooks';
 import EditSettings from './EditSettings';
-import EditPageant from './EditPageant';
 import EditResumeRequests from './EditResumeRequests';
 import EditAccount from './EditAccount';
 import {
   FiUser, FiTrendingUp, FiBriefcase, FiHeart,
-  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiStar, FiInbox, FiUpload, FiTrash2,
+  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiInbox, FiHome,
 } from 'react-icons/fi';
+import YanaAssistant from '../components/YanaAssistant';
 
 const NAV = [
   { key: 'profile',      label: 'Profile',           icon: FiUser },
@@ -26,9 +27,9 @@ const NAV = [
   { key: 'testimonials', label: 'Testimonials',       icon: FiMessageSquare },
   { key: 'blog',         label: 'Blog Posts',         icon: FiEdit },
   { key: 'books',        label: 'Recent Reads',       icon: FiBook },
-  { key: 'pageant',      label: 'Pageant & Titles',   icon: FiStar },
-  { key: 'settings',     label: 'Appearance',         icon: FiSettings },
   { key: 'inbox',        label: 'Resume Requests',    icon: FiInbox },
+  { key: 'settings',     label: 'Appearance',         icon: FiSettings },
+  { key: 'account',      label: 'Account',            icon: FiHome },
 ];
 
 const EDITORS = {
@@ -39,20 +40,30 @@ const EDITORS = {
   testimonials: EditTestimonials,
   blog:         EditBlog,
   books:        EditBooks,
-  pageant:      EditPageant,
   settings:     EditSettings,
   inbox:        EditResumeRequests,
   account:      EditAccount,
 };
 
+const PROFILE_FIELDS = new Set(['firstName', 'lastName', 'title', 'bio1', 'bio2', 'location', 'email', 'linkedin', 'availabilityNote']);
+
 export default function AdminDashboard() {
   const { user, username, logout } = useAuth();
   const { firestoreLoaded, firestoreError } = useData();
   const navigate = useNavigate();
-  const goImport = () => navigate('/admin/import');
   const [active, setActive] = useState('profile');
   const [toast, setToast] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [yanaOpen, setYanaOpen] = useState(false);
+  // Increment to trigger Yana re-analysis; intentionally NOT changed when switching sections for typewrite
+  const [yanaAnalysisKey, setYanaAnalysisKey] = useState(0);
+  const editProfileRef = useRef(null);
+  const [inboxCount, setInboxCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    getInboxCount(user.uid).then(setInboxCount).catch(() => {});
+  }, [user]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -62,6 +73,25 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     await logout();
     navigate('/admin/login');
+  };
+
+  const handleNavClick = (key) => {
+    setActive(key);
+    setSidebarOpen(false);
+    if (key === 'inbox') setInboxCount(0);
+    if (yanaOpen) setYanaAnalysisKey(k => k + 1);
+  };
+
+  // Called by YanaAssistant when user clicks Apply on a suggestion
+  const handleYanaApply = async (suggestion) => {
+    if (!suggestion.newValue) return;
+    if (suggestion.field && PROFILE_FIELDS.has(suggestion.field)) {
+      setActive('profile'); // silently switch to profile (no analysisKey bump)
+      await new Promise(r => setTimeout(r, 200));
+      await editProfileRef.current?.typewriteField(suggestion.field, suggestion.newValue);
+    } else {
+      await navigator.clipboard.writeText(suggestion.newValue);
+    }
   };
 
   const ActiveEditor = EDITORS[active];
@@ -88,12 +118,20 @@ export default function AdminDashboard() {
               findyana.com/{username} <FiExternalLink size={11} />
             </a>
           )}
-          <span className="font-body text-xs text-gray-400 hidden md:block">{user?.email}</span>
           <button
-            onClick={goImport}
-            className="flex items-center gap-1.5 font-body text-xs font-semibold text-blush-600 bg-blush-50 hover:bg-blush-100 px-3 py-1.5 rounded-lg transition-colors"
+            onClick={() => {
+              const opening = !yanaOpen;
+              setYanaOpen(opening);
+              if (opening) setYanaAnalysisKey(k => k + 1);
+            }}
+            className={`flex items-center gap-1.5 font-body text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+              yanaOpen
+                ? 'bg-blush-500 text-white hover:bg-blush-600'
+                : 'text-blush-600 bg-blush-50 hover:bg-blush-100'
+            }`}
           >
-            <FiUpload size={12} /> <span className="hidden sm:inline">Import Resume</span>
+            <span className="text-sm">✨</span>
+            <span className="hidden sm:inline">Ask Yana</span>
           </button>
           <button onClick={handleLogout} className="flex items-center gap-1.5 font-body text-xs text-gray-500 hover:text-red-500 transition-colors">
             <FiLogOut size={14} /> <span className="hidden sm:inline">Logout</span>
@@ -113,7 +151,7 @@ export default function AdminDashboard() {
               {NAV.map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
-                  onClick={() => { setActive(key); setSidebarOpen(false); }}
+                  onClick={() => handleNavClick(key)}
                   className={`w-full flex items-center gap-3 px-5 py-2.5 font-body text-sm font-medium transition-colors text-left ${
                     active === key
                       ? 'bg-blush-50 text-blush-600 border-r-2 border-blush-400'
@@ -122,23 +160,13 @@ export default function AdminDashboard() {
                 >
                   <Icon size={15} className="shrink-0" />
                   {label}
+                  {key === 'inbox' && inboxCount > 0 && (
+                    <span className="ml-auto min-w-[18px] h-[18px] bg-green-500 text-white font-body text-[10px] font-bold rounded-full flex items-center justify-center px-1 shrink-0">
+                      {inboxCount > 99 ? '99+' : inboxCount}
+                    </span>
+                  )}
                 </button>
               ))}
-            </div>
-
-            {/* Account / danger zone — visually separated at the bottom */}
-            <div className="border-t border-gray-100 pt-2 pb-2">
-              <button
-                onClick={() => { setActive('account'); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-5 py-2.5 font-body text-sm font-medium transition-colors text-left ${
-                  active === 'account'
-                    ? 'bg-red-50 text-red-600 border-r-2 border-red-400'
-                    : 'text-gray-400 hover:bg-red-50 hover:text-red-500'
-                }`}
-              >
-                <FiTrash2 size={15} className="shrink-0" />
-                Account
-              </button>
             </div>
           </nav>
 
@@ -169,7 +197,9 @@ export default function AdminDashboard() {
                 </button>
               </div>
             ) : firestoreLoaded ? (
-              <ActiveEditor onToast={showToast} />
+              active === 'profile'
+                ? <EditProfile ref={editProfileRef} onToast={showToast} />
+                : <ActiveEditor onToast={showToast} />
             ) : (
               <div className="space-y-4 animate-pulse">
                 <div className="h-7 w-40 bg-gray-100 rounded-lg" />
@@ -187,6 +217,15 @@ export default function AdminDashboard() {
           </div>
         </main>
       </div>
+
+      {/* Yana AI Assistant panel */}
+      <YanaAssistant
+        open={yanaOpen}
+        onClose={() => setYanaOpen(false)}
+        section={active}
+        analysisKey={yanaAnalysisKey}
+        onApply={handleYanaApply}
+      />
 
       {/* Toast */}
       {toast && (

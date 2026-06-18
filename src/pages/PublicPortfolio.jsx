@@ -10,7 +10,6 @@ import Experience from '../components/Experience';
 import Testimonials from '../components/Testimonials';
 import Blog from '../components/Blog';
 import Contact from '../components/Contact';
-import Pageant from '../components/Pageant';
 import Footer from '../components/Footer';
 
 function PublicSiteContent() {
@@ -36,8 +35,7 @@ function PublicSiteContent() {
         {v.experience !== false && <Experience />}
         {v.testimonials !== false && <Testimonials />}
         {v.blog !== false && <Blog />}
-        {v.pageant !== false && <Pageant />}
-        {v.contact !== false && <Contact />}
+{v.contact !== false && <Contact />}
       </main>
       <Footer />
     </div>
