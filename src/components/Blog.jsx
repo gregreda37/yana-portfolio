@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useData } from '../contexts/DataContext';
 import BlogModal from './BlogModal';
 import BookModal from './BookModal';
@@ -168,6 +168,7 @@ export default function Blog() {
             <div className="rounded-2xl overflow-hidden border border-amber-100/80" style={{ background: 'linear-gradient(to bottom, #fdf8f0, #faf4ea)' }}>
               {/* Spines — horizontally scrollable */}
               <div className="overflow-x-auto px-6 pt-8">
+                <LayoutGroup>
                 <div className="flex items-end gap-2" style={{ minWidth: 'min-content' }}>
                   {filteredBooks.map((book, i) => {
                     const HEIGHTS = [200, 228, 184, 218, 206, 236, 192, 212];
@@ -207,12 +208,10 @@ export default function Blog() {
                               transform: 'rotate(180deg)',
                               overflow: 'hidden',
                               maxHeight: h - 32,
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
                               textShadow: '0 1px 4px rgba(0,0,0,0.35)',
                             }}
                           >
-                            {book.title}
+                            {book.title.length > 22 ? book.title.slice(0, 21) + '…' : book.title}
                           </p>
                         </div>
 
@@ -227,6 +226,7 @@ export default function Blog() {
                     );
                   })}
                 </div>
+                </LayoutGroup>
               </div>
 
               {/* Shelf plank */}
@@ -261,7 +261,7 @@ export default function Blog() {
                         }`}
                       >
                         {/* Color band */}
-                        <div className={`h-1.5 bg-gradient-to-r ${book.coverColor}`} />
+                        <div className={`h-1.5 bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
                         <div className="p-4">
                           <div className="flex items-center justify-between mb-2">
                             {book.genre ? (

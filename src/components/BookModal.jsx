@@ -43,7 +43,7 @@ export default function BookModal({ book, onClose }) {
           onClick={e => e.stopPropagation()}
         >
           {/* Header with book cover strip */}
-          <div className={`bg-gradient-to-r ${book.coverColor} px-8 pt-8 pb-6 shrink-0`}>
+          <div className={`bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'} px-8 pt-8 pb-6 shrink-0`}>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <span className={`font-body text-xs font-semibold px-2.5 py-1 rounded-full bg-white/30 text-white mb-3 inline-block`}>
@@ -73,7 +73,7 @@ export default function BookModal({ book, onClose }) {
 
             <h3 className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5">Key Takeaways</h3>
             <div className="space-y-5 mb-8">
-              {book.takeaways.map((t, i) => (
+              {(book.takeaways ?? []).map((t, i) => (
                 <div key={i} className="flex gap-4">
                   <div className="shrink-0 w-6 h-6 rounded-full bg-accent-100 flex items-center justify-center mt-0.5">
                     <span className="font-body text-xs font-bold text-accent-500">{i + 1}</span>

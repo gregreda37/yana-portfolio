@@ -80,7 +80,10 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
         if (!cancelled) setFirestoreLoaded(true);
       } catch (e) {
         console.error('Failed to load portfolio data from Firestore:', e.message);
-        if (!cancelled) setFirestoreError(true);
+        if (!cancelled) {
+          setFirestoreError(true);
+          setFirestoreLoaded(true); // unblock the spinner so the page renders
+        }
       }
     }
     load();

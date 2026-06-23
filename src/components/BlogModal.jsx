@@ -15,7 +15,7 @@ export default function BlogModal({ post, onClose }) {
 
   if (!post) return null;
 
-  const paragraphs = post.body.split('\n\n');
+  const paragraphs = (post.body ?? '').split('\n\n');
 
   return (
     <AnimatePresence>
@@ -59,7 +59,6 @@ export default function BlogModal({ post, onClose }) {
           <div className="px-8 py-6 overflow-y-auto">
             <div className="prose prose-sm max-w-none">
               {paragraphs.map((para, i) => {
-                const isBold = para.startsWith('**');
                 if (para.startsWith('**') && para.endsWith('**')) {
                   return <h4 key={i} className="font-display text-xl text-gray-800 mt-6 mb-2">{para.replace(/\*\*/g, '')}</h4>;
                 }
@@ -76,7 +75,7 @@ export default function BlogModal({ post, onClose }) {
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-accent-100">
-              {post.tags.map(tag => (
+              {(post.tags ?? []).map(tag => (
                 <span key={tag} className="font-body text-xs text-accent-500 bg-accent-50 border border-accent-200 px-3 py-1 rounded-full flex items-center gap-1">
                   <FiTag size={10} /> {tag}
                 </span>
