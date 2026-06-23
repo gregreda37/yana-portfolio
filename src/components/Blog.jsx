@@ -19,19 +19,27 @@ export default function Blog() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [selectedPost, setSelectedPost] = useState(null);
-  const [selectedBook, setSelectedBook] = useState(null);
+  const [selectedBook, setSelectedBook] = useState(null);  // opens BookModal
+  const [expandedBook, setExpandedBook] = useState(null);  // inline shelf expansion
   const [activeGenre, setActiveGenre] = useState('All');
-  const [visibleCount, setVisibleCount] = useState(4);
 
   const genres = ['All', ...Array.from(new Set(recentReads.map(b => b.genre).filter(Boolean)))];
   const filteredBooks = activeGenre === 'All' ? recentReads : recentReads.filter(b => b.genre === activeGenre);
-  const visibleBooks = filteredBooks.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredBooks.length;
 
   const handleGenreChange = (genre) => {
     setActiveGenre(genre);
-    setVisibleCount(4);
+    setExpandedBook(null);
   };
+
+  // 3 cards to show below shelf: clicked book + up to 1 on each side
+  const contextBooks = expandedBook
+    ? (() => {
+        const count = Math.min(filteredBooks.length, 3);
+        const idx = filteredBooks.findIndex(b => b.id === expandedBook.id);
+        const start = Math.max(0, Math.min(idx - 1, filteredBooks.length - count));
+        return filteredBooks.slice(start, start + count);
+      })()
+    : [];
 
   if (!blogPosts.length && !recentReads.length) return null;
 
@@ -156,68 +164,141 @@ export default function Blog() {
               </div>
             </div>
 
-            {/* Book grid — shelf */}
-            <div className="relative">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnimatePresence mode="popLayout">
-                  {visibleBooks.map((book, i) => (
-                    <motion.div
-                      key={book.id}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.3, delay: i * 0.05 }}
-                    >
-                      <button
-                        onClick={() => setSelectedBook(book)}
-                        className="w-full text-left group card flex gap-3 items-start h-44 overflow-hidden"
+            {/* Bookshelf panel */}
+            <div className="rounded-2xl overflow-hidden border border-amber-100/80" style={{ background: 'linear-gradient(to bottom, #fdf8f0, #faf4ea)' }}>
+              {/* Spines — horizontally scrollable */}
+              <div className="overflow-x-auto px-6 pt-8">
+                <div className="flex items-end gap-2" style={{ minWidth: 'min-content' }}>
+                  {filteredBooks.map((book, i) => {
+                    const HEIGHTS = [200, 228, 184, 218, 206, 236, 192, 212];
+                    const h = HEIGHTS[i % HEIGHTS.length];
+                    const isActive = expandedBook?.id === book.id;
+                    return (
+                      <motion.button
+                        key={book.id}
+                        onClick={() => setExpandedBook(isActive ? null : book)}
+                        className="relative shrink-0 rounded-t-md overflow-hidden cursor-pointer focus:outline-none"
+                        style={{ width: 58, height: h }}
+                        animate={{ y: isActive ? -22 : 0 }}
+                        whileHover={{ y: isActive ? -26 : -10 }}
+                        transition={{ duration: 0.18 }}
+                        title={book.title}
                       >
-                        <div className={`shrink-0 w-8 self-stretch rounded-lg bg-gradient-to-b ${book.coverColor}`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-1 mb-1">
+                        {/* Spine gradient */}
+                        <div className={`absolute inset-0 bg-gradient-to-b ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
+
+                        {/* Binding crease & highlight */}
+                        <div className="absolute left-0 top-0 w-3.5 h-full bg-white/25" />
+                        <div className="absolute left-3.5 top-0 w-px h-full bg-white/20" />
+
+                        {/* Right edge depth */}
+                        <div className="absolute right-0 top-0 w-2 h-full bg-black/20" />
+
+                        {/* Top inner shadow */}
+                        <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/15 to-transparent" />
+
+                        {/* Title — vertical, reads bottom-to-top */}
+                        <div className="absolute inset-4 flex items-center justify-center">
+                          <p
+                            className="font-display font-semibold text-white leading-none"
+                            style={{
+                              fontSize: 11,
+                              writingMode: 'vertical-rl',
+                              transform: 'rotate(180deg)',
+                              overflow: 'hidden',
+                              maxHeight: h - 32,
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              textShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                            }}
+                          >
+                            {book.title}
+                          </p>
+                        </div>
+
+                        {/* Active ribbon at top */}
+                        {isActive && (
+                          <motion.div
+                            layoutId="active-ribbon"
+                            className="absolute inset-x-0 top-0 h-2 bg-white/50"
+                          />
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Shelf plank */}
+              <div className="relative" style={{ height: 22, background: 'linear-gradient(180deg, #d4aa70 0%, #b8905a 60%, #a07840 100%)', boxShadow: '0 4px 14px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.22)' }}>
+                <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-transparent to-black/15" />
+              </div>
+              {/* Shadow under shelf */}
+              <div className="h-4" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), transparent)' }} />
+            </div>
+
+            {/* 3-card detail grid */}
+            <AnimatePresence>
+              {expandedBook && (
+                <motion.div
+                  key={expandedBook.id}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3"
+                >
+                  {contextBooks.map(book => {
+                    const isHighlighted = book.id === expandedBook.id;
+                    return (
+                      <button
+                        key={book.id}
+                        onClick={() => setSelectedBook(book)}
+                        className={`text-left rounded-2xl overflow-hidden border transition-all hover:shadow-md group ${
+                          isHighlighted
+                            ? 'border-accent-200 shadow-sm bg-white'
+                            : 'border-gray-100 bg-white opacity-80 hover:opacity-100'
+                        }`}
+                      >
+                        {/* Color band */}
+                        <div className={`h-1.5 bg-gradient-to-r ${book.coverColor}`} />
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-2">
                             {book.genre ? (
-                              <span className={`font-body text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-tight ${book.tagColor ?? 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`font-body text-[10px] font-semibold px-2 py-0.5 rounded-full ${book.tagColor ?? 'bg-gray-100 text-gray-500'}`}>
                                 {book.genre}
                               </span>
                             ) : <span />}
-                            <div className="flex gap-0.5 shrink-0">
-                              {[...Array(book.rating)].map((_, j) => (
-                                <span key={j} className="text-accent-300 text-[10px]">★</span>
+                            <div className="flex gap-0.5">
+                              {[...Array(book.rating ?? 0)].map((_, j) => (
+                                <span key={j} className={`text-[11px] ${isHighlighted ? 'text-accent-400' : 'text-accent-300'}`}>★</span>
                               ))}
                             </div>
                           </div>
-                          <h4 className="font-display text-base font-medium text-gray-800 leading-snug mb-0.5 group-hover:text-accent-600 transition-colors line-clamp-2">
+                          <h4 className={`font-display text-base font-medium leading-snug mb-0.5 group-hover:text-accent-600 transition-colors ${isHighlighted ? 'text-accent-700' : 'text-gray-800'}`}>
                             {book.title}
                           </h4>
-                          <p className="font-body text-[11px] text-gray-400 mb-2 line-clamp-1">{book.author}</p>
-                          <p className="font-body text-[11px] text-gray-500 leading-relaxed line-clamp-2">
-                            {book.takeaways?.[0]?.heading ?? ''}
+                          <p className="font-body text-xs text-gray-400 mb-2">{book.author}</p>
+                          {book.takeaways?.[0] && (
+                            <p className="font-body text-xs text-gray-500 leading-relaxed line-clamp-2">
+                              {book.takeaways[0].heading}
+                            </p>
+                          )}
+                          <p className="font-body text-xs font-semibold text-accent-500 mt-3 flex items-center gap-1">
+                            Read more <FiArrowRight size={11} />
                           </p>
                         </div>
                       </button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-
-              {/* Shelf line */}
-              <div className="mt-4 h-3 bg-gradient-to-b from-gray-100 to-gray-50 rounded-b-lg border-t border-gray-200 shadow-sm" />
-            </div>
-
-            {/* Show more / count */}
-            <div className="flex items-center justify-between mt-6">
-              <p className="font-body text-xs text-gray-400">
-                Showing {visibleBooks.length} of {filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}
-              </p>
-              {hasMore && (
-                <button
-                  onClick={() => setVisibleCount(c => c + 4)}
-                  className="font-body text-sm font-semibold text-accent-500 hover:text-accent-700 flex items-center gap-1.5 transition-colors"
-                >
-                  Show more <FiArrowRight size={14} />
-                </button>
+                    );
+                  })}
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
+
+            {/* Book count */}
+            <p className="font-body text-xs text-gray-400 mt-4">
+              {filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}{activeGenre !== 'All' ? ` · ${activeGenre}` : ''}{expandedBook ? ' · click a spine to browse' : ' · click a spine to explore'}
+            </p>
           </motion.div>
         )}
       </div>

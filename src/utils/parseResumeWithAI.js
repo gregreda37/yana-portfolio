@@ -1,7 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/config';
 
-// Bundled worker — no CDN dependency, no version-mismatch silently hanging
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 // ── PDF text extraction ───────────────────────────────────────────────────────
@@ -40,32 +41,13 @@ async function extractPdfText(file) {
   return pages.join('\n\n');
 }
 
-// ── Claude API config ─────────────────────────────────────────────────────────
-const CLAUDE_CONFIG = {
-  url: 'https://api.anthropic.com/v1/messages',
-  headers: {
-    'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY ?? '',
-    'anthropic-version': '2023-06-01',
-    'anthropic-dangerous-direct-browser-access': 'true',
-    'content-type': 'application/json',
-  },
-};
-
-function buildBody(text) {
-  return {
-    model: import.meta.env.VITE_ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001',
-    max_tokens: 4096,
-    system: SYSTEM_PROMPT,
-    messages: [{
-      role: 'user',
-      content: `Fill in the JSON template using the document text below. Follow all template instructions exactly.\n\n<document>\n${text.slice(0, 14000)}\n</document>`,
-    }],
-  };
-}
-
-function extractContent(result) {
-  const block = result.content?.find(b => b.type === 'text');
-  return block?.text ?? '';
+// ── Cloud Function callable (lazy singleton) ──────────────────────────────────
+let _parseResumeFn = null;
+function getParseResumeFn() {
+  if (!_parseResumeFn) {
+    _parseResumeFn = httpsCallable(functions, 'parseResume', { timeout: 120000 });
+  }
+  return _parseResumeFn;
 }
 
 // ── Robustly extract a JSON object from a model response string ───────────────
@@ -91,12 +73,6 @@ function parseJsonFromResponse(text) {
   }
 
   return null;
-}
-
-// ── Extract error message from a non-OK response ──────────────────────────────
-async function extractError(res) {
-  const data = await res.json().catch(() => ({}));
-  return data.error?.message ?? `API error ${res.status}`;
 }
 
 // ── Partial-JSON section extractor ────────────────────────────────────────────
@@ -189,75 +165,8 @@ function normalizeResponse(raw) {
   };
 }
 
-// ── Shared extraction prompt ──────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are a JSON template filler. You receive a document and a JSON template. Populate every field in the template using only information found in the document. Output ONLY the completed JSON — no markdown, no explanation.
-
-JSON template to fill:
-{
-  "profile": {
-    "firstName": "",
-    "lastName": "",
-    "title": "Primary title or role descriptor found in the document header",
-    "summary1": "2-3 sentences from the document's summary or objective section, first person",
-    "summary2": "Additional context paragraph from the document if present, otherwise empty string",
-    "location": "City, State from the document header",
-    "email": "Email address if present",
-    "linkedin": "LinkedIn URL if present, e.g. https://linkedin.com/in/handle",
-    "instagram": "Instagram URL if present",
-    "twitter": "Twitter URL if present",
-    "facebook": "Facebook URL if present",
-    "tiktok": "TikTok URL if present",
-    "youtube": "YouTube URL if present",
-    "availabilityNote": "Any open-to or availability statement if present"
-  },
-  "metrics": {
-    "items": [
-      {
-        "value": 0,
-        "prefix": "$ if currency, else empty string",
-        "suffix": "M, K, %, x, or + as appropriate, else empty string",
-        "label": "2-4 word metric name e.g. Revenue Generated",
-        "description": "One line of context",
-        "icon": "dollar, target, users, or heart"
-      }
-    ]
-  },
-  "experience": {
-    "jobs": [
-      {
-        "role": "Job title",
-        "company": "Company name",
-        "period": "Date range e.g. Jan 2020 – Present",
-        "location": "City, State or Remote",
-        "highlights": ["Plain text accomplishment or responsibility, no leading dash or bullet"]
-      }
-    ],
-    "education": [
-      {
-        "degree": "Degree and field e.g. B.S. Marketing",
-        "school": "Institution name",
-        "year": "Year as string"
-      }
-    ],
-    "skills": ["skill name"]
-  }
-}
-
-Rules:
-- metrics.items: Find 3–6 specific numbers or percentages in the document and create one item per achievement. icon choices: dollar=revenue/money, target=quota/goals, users=team/clients/accounts, heart=all other
-- jobs: reverse chronological order, 2–5 highlights each as plain strings with no leading punctuation
-- skills: 8–15 specific tools, platforms, or methodologies named in the document
-- Empty string for missing text fields, empty array for missing list fields`;
-
-
 // ── Primary parser — sequential section reveal ────────────────────────────────
-// Calls onSection(name, data) for each section with staggered delays so the
-// UI can animate each one in as if it arrived from a stream.
 export async function parseResumeStreaming(file, { onProgress, onSection, onError, onComplete } = {}) {
-  if (!import.meta.env.VITE_ANTHROPIC_API_KEY) {
-    onError?.('Resume import is not configured — the API key is missing. Please contact support.');
-    return;
-  }
   try {
     onProgress?.('reading');
     const text = await extractPdfText(file);
@@ -265,60 +174,34 @@ export async function parseResumeStreaming(file, { onProgress, onSection, onErro
 
     onProgress?.('streaming');
 
-    const res = await fetch(CLAUDE_CONFIG.url, {
-      method: 'POST',
-      headers: CLAUDE_CONFIG.headers,
-      body: JSON.stringify(buildBody(text)),
-    });
+    const { data } = await getParseResumeFn()({ text });
+    console.log('[Yana] stop_reason:', data.stop_reason, '| content length:', data.text?.length);
 
-    if (!res.ok) {
-      const msg = await extractError(res);
-      console.error('[Yana] API error:', msg);
-      throw new Error(msg);
+    if (!data.text) {
+      const reason = data.stop_reason ?? 'unknown';
+      throw new Error(`No response from AI (stop_reason: ${reason}). Please try again.`);
     }
 
-    const result = await res.json();
-    console.log('[Yana] stop_reason:', result.stop_reason, '| content blocks:', result.content?.length);
-
-    if (Array.isArray(result.content) && result.content.length === 0) {
-      const reason = result.stop_reason ?? 'unknown';
-      throw new Error(`No response from Claude (stop_reason: ${reason}). Please try again.`);
-    }
-
-    const content = extractContent(result);
-    console.log('[Yana] content preview:', content.slice(0, 200));
-
-    const raw = parseJsonFromResponse(content);
+    const raw = parseJsonFromResponse(data.text);
     if (!raw) {
-      console.error('[Yana] could not parse JSON from:', content.slice(0, 600));
+      console.error('[Yana] could not parse JSON from:', data.text?.slice(0, 600));
       throw new Error('AI returned invalid JSON — please try again.');
     }
 
     const parsed = normalizeResponse(raw);
     if (!parsed) throw new Error('AI response had no usable data — please try again.');
 
-    // Reveal each section with a short delay so the UI can animate them in
     const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
-    if (parsed.profile) {
-      onSection?.('profile', parsed.profile);
-      await wait(900);
-    }
-    if (parsed.metrics) {
-      onSection?.('metrics', parsed.metrics);
-      await wait(900);
-    }
-    if (parsed.experience) {
-      onSection?.('experience', parsed.experience);
-      await wait(900);
-    }
+    if (parsed.profile)    { onSection?.('profile',    parsed.profile);    await wait(900); }
+    if (parsed.metrics)    { onSection?.('metrics',    parsed.metrics);    await wait(900); }
+    if (parsed.experience) { onSection?.('experience', parsed.experience); await wait(900); }
 
     onComplete?.(parsed);
     return parsed;
 
   } catch (err) {
     onError?.(err.message ?? String(err));
-    // Don't re-throw — onError owns the UI reset
   }
 }
 
@@ -329,19 +212,8 @@ export async function parseResumeWithAI(file, onProgress) {
   if (!text.trim()) throw new Error('Could not extract text from this PDF.');
 
   onProgress?.('analyzing');
-
-  const res = await fetch(CLAUDE_CONFIG.url, {
-    method: 'POST',
-    headers: CLAUDE_CONFIG.headers,
-    body: JSON.stringify(buildBody(text)),
-  });
-
-  if (!res.ok) throw new Error(await extractError(res));
-
-  const result = await res.json();
-  const content = extractContent(result);
-
-  const raw = parseJsonFromResponse(content);
+  const { data } = await getParseResumeFn()({ text });
+  const raw = parseJsonFromResponse(data.text);
   if (!raw) throw new Error('AI returned invalid JSON — please try again.');
 
   onProgress?.('done');
