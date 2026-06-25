@@ -145,12 +145,21 @@ export default function About() {
             </p>
 
             <div className="grid sm:grid-cols-2 gap-3 mb-6">
-              {(healthcare.highlights ?? []).map((h, i) => (
-                <div key={i} className="flex gap-3 items-start bg-white/70 rounded-xl px-4 py-3">
-                  <span className="mt-0.5 shrink-0 text-lg leading-none" style={{ color: 'var(--accent-300)' }}>◆</span>
-                  <p className="font-body text-sm text-gray-600 leading-relaxed">{h}</p>
-                </div>
-              ))}
+              {(healthcare.highlights ?? []).map((h, i) => {
+                const text = typeof h === 'string' ? h : h.text;
+                const date = typeof h === 'string' ? '' : h.date;
+                return (
+                  <div key={i} className="flex gap-3 items-start bg-white/70 rounded-xl px-4 py-3">
+                    <span className="mt-0.5 shrink-0 text-lg leading-none" style={{ color: 'var(--accent-300)' }}>◆</span>
+                    <div className="min-w-0">
+                      <p className="font-body text-sm text-gray-600 leading-relaxed">{text}</p>
+                      {date && (
+                        <p className="font-body text-xs mt-1" style={{ color: 'var(--accent-400)' }}>{date}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="flex flex-wrap gap-2">
