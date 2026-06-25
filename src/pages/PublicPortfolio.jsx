@@ -13,7 +13,7 @@ import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 
 function PublicSiteContent() {
-  const { settings, firestoreLoaded } = useData();
+  const { settings, firestoreLoaded, firestoreError } = useData();
   const accentColor = settings?.accentColor ?? 'blush';
   const v = settings?.visible ?? {};
 
@@ -25,6 +25,8 @@ function PublicSiteContent() {
     );
   }
 
+  if (firestoreError) return <Navigate to="/" replace />;
+
   return (
     <div data-accent={accentColor}>
       <Navbar />
@@ -35,7 +37,7 @@ function PublicSiteContent() {
         {v.experience !== false && <Experience />}
         {v.testimonials !== false && <Testimonials />}
         {v.blog !== false && <Blog />}
-{v.contact !== false && <Contact />}
+        {v.contact !== false && <Contact />}
       </main>
       <Footer />
     </div>
