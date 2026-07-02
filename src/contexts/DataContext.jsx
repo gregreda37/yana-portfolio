@@ -14,7 +14,7 @@ export const DEFAULTS = {
   experience: { jobs: [], education: [], skills: [] },
   healthcare: { label: 'Specialty Background', summary: '', highlights: [] },
   testimonials: { items: [] },
-  blog: { posts: [] },
+  blog: { posts: [], categories: [] },
   books: { items: [] },
   settings: {
     accentColor: 'blush',

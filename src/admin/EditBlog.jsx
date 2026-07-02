@@ -1,28 +1,46 @@
 import { useState } from 'react';
+import { FiPlus, FiX } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
 
-const CATEGORIES = ['Prospecting', 'Sales Strategy', 'Relationship Building', 'Objection Handling', 'Leadership', 'Productivity'];
-const blank = () => ({
-  id: Date.now(), slug: '', title: '', category: 'Sales Strategy',
+const DEFAULT_CATEGORIES = ['Prospecting', 'Sales Strategy', 'Relationship Building', 'Objection Handling', 'Leadership', 'Productivity'];
+
+const blank = (categories) => ({
+  id: Date.now(), slug: '', title: '', category: categories[0] ?? 'General',
   date: '', readTime: '5 min read', excerpt: '', body: '', tags: [],
 });
 
 export default function EditBlog({ onToast }) {
   const { blog, saveSection } = useData();
+
+  const initialCategories = blog.categories?.length ? blog.categories : DEFAULT_CATEGORIES;
+  const [categories, setCategories] = useState(initialCategories);
+  const [newCategory, setNewCategory] = useState('');
+
   const [posts, setPosts] = useState(blog.posts.map((p, i) => ({ ...p, id: p.id ?? i })));
   const [editIdx, setEditIdx] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  const addCategory = () => {
+    const name = newCategory.trim();
+    if (!name || categories.includes(name)) return;
+    setCategories(prev => [...prev, name]);
+    setNewCategory('');
+  };
+
+  const removeCategory = (cat) => {
+    setCategories(prev => prev.filter(c => c !== cat));
+  };
+
   const openEdit = (idx) => { setEditIdx(idx); setEditPost({ ...posts[idx] }); };
   const applyEdit = () => { setPosts(p => p.map((post, i) => i === editIdx ? editPost : post)); setEditIdx(null); };
   const set = (k, v) => setEditPost(p => ({ ...p, [k]: v }));
-  const addPost = () => { const b = blank(); setPosts(p => [...p, b]); setEditIdx(posts.length); setEditPost(b); };
+  const addPost = () => { const b = blank(categories); setPosts(p => [...p, b]); setEditIdx(posts.length); setEditPost(b); };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSection('blog', { posts });
+      await saveSection('blog', { posts, categories });
       onToast('Blog posts saved!');
     } catch {
       onToast('Save failed — check your connection and try again.');
@@ -36,6 +54,51 @@ export default function EditBlog({ onToast }) {
       <h2 className="admin-section-title">Blog Posts</h2>
       <p className="admin-section-desc">Articles shown in the Insights section. Body supports **bold** markdown.</p>
 
+      {/* ── Category Manager ───────────────────────────────────────────── */}
+      <div className="mt-6 bg-gray-50 border border-gray-100 rounded-2xl p-5">
+        <label className="admin-label mb-3 block">Categories</label>
+
+        <div className="flex flex-wrap gap-2 mb-3">
+          {categories.map(cat => (
+            <span
+              key={cat}
+              className="inline-flex items-center gap-1.5 font-body text-xs font-semibold bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-full"
+            >
+              {cat}
+              <button
+                onClick={() => removeCategory(cat)}
+                className="text-gray-300 hover:text-red-400 transition-colors"
+                aria-label={`Remove ${cat}`}
+              >
+                <FiX size={11} />
+              </button>
+            </span>
+          ))}
+          {categories.length === 0 && (
+            <p className="font-body text-xs text-gray-400">No categories yet — add one below.</p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            className="admin-input flex-1"
+            placeholder="e.g. Leadership, Mindset, Client Success…"
+            value={newCategory}
+            onChange={e => setNewCategory(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCategory())}
+          />
+          <button
+            onClick={addCategory}
+            disabled={!newCategory.trim() || categories.includes(newCategory.trim())}
+            className="btn-outline flex items-center gap-1.5 text-sm disabled:opacity-40"
+          >
+            <FiPlus size={13} /> Add
+          </button>
+        </div>
+      </div>
+
+      {/* ── Post List ──────────────────────────────────────────────────── */}
       <div className="mt-6 space-y-3">
         {posts.map((post, idx) => (
           <div key={post.id}>
@@ -49,7 +112,10 @@ export default function EditBlog({ onToast }) {
                   <div>
                     <label className="admin-label">Category</label>
                     <select value={editPost.category} onChange={e => set('category', e.target.value)} className="admin-input">
-                      {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                      {categories.map(c => <option key={c}>{c}</option>)}
+                      {!categories.includes(editPost.category) && editPost.category && (
+                        <option value={editPost.category}>{editPost.category}</option>
+                      )}
                     </select>
                   </div>
                   <div>

@@ -5,12 +5,21 @@ import BlogModal from './BlogModal';
 import BookModal from './BookModal';
 import { FiClock, FiArrowRight, FiCalendar, FiBookOpen } from 'react-icons/fi';
 
-const categoryColors = {
-  'Prospecting': 'bg-accent-100 text-accent-600',
-  'Sales Strategy': 'bg-lavender-100 text-purple-600',
-  'Relationship Building': 'bg-pink-100 text-pink-600',
-  'Objection Handling': 'bg-rose-100 text-rose-600',
-};
+const PALETTE = [
+  'bg-accent-100 text-accent-600',
+  'bg-lavender-100 text-purple-600',
+  'bg-pink-100 text-pink-600',
+  'bg-rose-100 text-rose-600',
+  'bg-sky-100 text-sky-600',
+  'bg-emerald-100 text-emerald-600',
+  'bg-amber-100 text-amber-700',
+  'bg-indigo-100 text-indigo-600',
+];
+
+function categoryColor(category, categories) {
+  const idx = categories.indexOf(category);
+  return PALETTE[(idx >= 0 ? idx : 0) % PALETTE.length];
+}
 
 export default function Blog() {
   const { blog, books: booksData } = useData();
@@ -19,9 +28,19 @@ export default function Blog() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [selectedPost, setSelectedPost] = useState(null);
-  const [selectedBook, setSelectedBook] = useState(null);  // opens BookModal
-  const [expandedBook, setExpandedBook] = useState(null);  // inline shelf expansion
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [expandedBook, setExpandedBook] = useState(null);
   const [activeGenre, setActiveGenre] = useState('All');
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  // Categories from admin config; fall back to what's actually used in posts
+  const categories = blog.categories?.length
+    ? blog.categories
+    : [...new Set(blogPosts.map(p => p.category).filter(Boolean))];
+
+  const filteredPosts = activeCategory === 'All'
+    ? blogPosts
+    : blogPosts.filter(p => p.category === activeCategory);
 
   const genres = ['All', ...Array.from(new Set(recentReads.map(b => b.genre).filter(Boolean)))];
   const filteredBooks = activeGenre === 'All' ? recentReads : recentReads.filter(b => b.genre === activeGenre);
@@ -46,7 +65,7 @@ export default function Blog() {
   return (
     <section id="blog" className="py-24 px-6 bg-white" ref={ref}>
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <p className="section-subtitle">Insights</p>
           <h2 className="section-title">Sales insights & strategy.</h2>
           <p className="font-body text-gray-400 mt-3 max-w-md mx-auto">
@@ -54,8 +73,32 @@ export default function Blog() {
           </p>
         </div>
 
+        {/* Category filter pills */}
+        {categories.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.4 }}
+            className="flex flex-wrap gap-2 justify-center mb-10"
+          >
+            {['All', ...categories].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`font-body text-xs font-semibold px-4 py-1.5 rounded-full border transition-colors ${
+                  activeCategory === cat
+                    ? 'bg-accent-500 text-white border-accent-500'
+                    : 'bg-white text-gray-500 border-gray-200 hover:border-accent-300 hover:text-accent-600'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </motion.div>
+        )}
+
         {/* Featured post */}
-        {blogPosts.length > 0 && (
+        {filteredPosts.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -63,24 +106,24 @@ export default function Blog() {
             className="mb-8"
           >
             <button
-              onClick={() => setSelectedPost(blogPosts[0])}
+              onClick={() => setSelectedPost(filteredPosts[0])}
               className="w-full text-left group bg-gradient-to-br from-accent-50 to-accent-100 border border-accent-100 rounded-3xl p-8 md:p-10 hover:shadow-md transition-shadow duration-300"
             >
               <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className={`font-body text-xs font-semibold px-3 py-1 rounded-full ${categoryColors[blogPosts[0].category] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {blogPosts[0].category}
+                <span className={`font-body text-xs font-semibold px-3 py-1 rounded-full ${categoryColor(filteredPosts[0].category, categories)}`}>
+                  {filteredPosts[0].category}
                 </span>
                 <span className="font-body text-xs text-gray-400 flex items-center gap-1">
-                  <FiCalendar size={11} /> {blogPosts[0].date}
+                  <FiCalendar size={11} /> {filteredPosts[0].date}
                 </span>
                 <span className="font-body text-xs text-gray-400 flex items-center gap-1">
-                  <FiClock size={11} /> {blogPosts[0].readTime}
+                  <FiClock size={11} /> {filteredPosts[0].readTime}
                 </span>
               </div>
               <h3 className="font-display text-3xl md:text-4xl font-light text-gray-800 mb-3 group-hover:text-accent-600 transition-colors">
-                {blogPosts[0].title}
+                {filteredPosts[0].title}
               </h3>
-              <p className="font-body text-gray-500 leading-relaxed max-w-2xl mb-6">{blogPosts[0].excerpt}</p>
+              <p className="font-body text-gray-500 leading-relaxed max-w-2xl mb-6">{filteredPosts[0].excerpt}</p>
               <span className="inline-flex items-center gap-2 font-body text-sm font-semibold text-accent-500 group-hover:gap-3 transition-all">
                 Read article <FiArrowRight size={14} />
               </span>
@@ -89,9 +132,9 @@ export default function Blog() {
         )}
 
         {/* Grid of remaining posts */}
-        {blogPosts.length > 1 && (
+        {filteredPosts.length > 1 && (
           <div className="grid md:grid-cols-3 gap-6">
-            {blogPosts.slice(1).map((post, i) => (
+            {filteredPosts.slice(1).map((post, i) => (
               <motion.div
                 key={post.id}
                 initial={{ opacity: 0, y: 24 }}
@@ -103,7 +146,7 @@ export default function Blog() {
                   className="w-full text-left group card h-full flex flex-col"
                 >
                   <div className="flex items-center gap-2 mb-4">
-                    <span className={`font-body text-xs font-semibold px-2.5 py-1 rounded-full ${categoryColors[post.category] || 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`font-body text-xs font-semibold px-2.5 py-1 rounded-full ${categoryColor(post.category, categories)}`}>
                       {post.category}
                     </span>
                   </div>
