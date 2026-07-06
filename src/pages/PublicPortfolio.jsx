@@ -9,11 +9,12 @@ import Metrics from '../components/Metrics';
 import Experience from '../components/Experience';
 import Testimonials from '../components/Testimonials';
 import Blog from '../components/Blog';
+import CalendlyEmbed from '../components/CalendlyEmbed';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 
 function PublicSiteContent() {
-  const { settings, firestoreLoaded, firestoreError } = useData();
+  const { settings, calendly, firestoreLoaded, firestoreError } = useData();
   const accentColor = settings?.accentColor ?? 'blush';
   const v = settings?.visible ?? {};
 
@@ -37,6 +38,7 @@ function PublicSiteContent() {
         {v.experience !== false && <Experience />}
         {v.testimonials !== false && <Testimonials />}
         {v.blog !== false && <Blog />}
+        {v.calendly !== false && calendly?.url && <CalendlyEmbed url={calendly.url} />}
         {v.contact !== false && <Contact />}
       </main>
       <Footer />

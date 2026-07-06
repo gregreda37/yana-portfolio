@@ -10,12 +10,13 @@ import EditHealthcare from './EditHealthcare';
 import EditTestimonials from './EditTestimonials';
 import EditBlog from './EditBlog';
 import EditBooks from './EditBooks';
+import EditCalendly from './EditCalendly';
 import EditSettings from './EditSettings';
 import EditResumeRequests from './EditResumeRequests';
 import EditAccount from './EditAccount';
 import {
   FiUser, FiTrendingUp, FiBriefcase, FiHeart,
-  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiInbox, FiHome,
+  FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiInbox, FiHome, FiCalendar,
 } from 'react-icons/fi';
 import YanaAssistant from '../components/YanaAssistant';
 
@@ -27,6 +28,7 @@ const NAV = [
   { key: 'testimonials', label: 'Testimonials',       icon: FiMessageSquare },
   { key: 'blog',         label: 'Blog Posts',         icon: FiEdit },
   { key: 'books',        label: 'Recent Reads',       icon: FiBook },
+  { key: 'calendly',    label: 'Calendly Booking',   icon: FiCalendar },
   { key: 'inbox',        label: 'Resume Requests',    icon: FiInbox },
   { key: 'settings',     label: 'Appearance',         icon: FiSettings },
   { key: 'account',      label: 'Account',            icon: FiHome },
@@ -40,6 +42,7 @@ const EDITORS = {
   testimonials: EditTestimonials,
   blog:         EditBlog,
   books:        EditBooks,
+  calendly:     EditCalendly,
   settings:     EditSettings,
   inbox:        EditResumeRequests,
   account:      EditAccount,

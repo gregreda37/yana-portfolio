@@ -16,6 +16,7 @@ export const DEFAULTS = {
   testimonials: { items: [] },
   blog: { posts: [], categories: [] },
   books: { items: [] },
+  calendly: { url: '' },
   settings: {
     accentColor: 'blush',
     visible: {
@@ -24,6 +25,7 @@ export const DEFAULTS = {
       specialty: true,
       testimonials: true,
       blog: true,
+      calendly: true,
       contact: true,
     },
   },
