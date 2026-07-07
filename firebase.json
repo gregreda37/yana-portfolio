@@ -11,7 +11,7 @@
     "rewrites": [
       { "source": "/admin",    "destination": "/index.html" },
       { "source": "/admin/**", "destination": "/index.html" },
-      { "source": "/*",        "run": { "serviceId": "portfoliopreview", "region": "us-central1" } },
+      { "source": "/*",        "function": "portfolioPreview" },
       { "source": "**",        "destination": "/index.html" }
     ]
   },

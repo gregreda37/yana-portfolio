@@ -1,4 +1,5 @@
-const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { https: httpsV1 } = require('firebase-functions/v1');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const fs = require('fs');
@@ -34,7 +35,7 @@ function buildOGTags({ name, jobTitle, description, image, url }) {
   ].filter(Boolean).join('\n    ');
 }
 
-exports.portfolioPreview = onRequest({ region: 'us-central1' }, async (req, res) => {
+exports.portfolioPreview = httpsV1.onRequest(async (req, res) => {
   const username = (req.path || '/').replace(/^\//, '').split('/')[0];
 
   // Let admin routes and empty paths fall through to index.html
