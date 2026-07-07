@@ -57,8 +57,8 @@ exports.portfolioPreview = onRequest({ region: 'us-central1', invoker: 'public' 
   }
 
   const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || username;
-  const title = profile.title ? `${name} | ${profile.title}` : name;
-  const description = profile.bio1 ? profile.bio1.slice(0, 200) : `${name}'s professional portfolio.`;
+  const title = `${name} — Professional Portfolio`;
+  const description = profile.bio1 ? profile.bio1.slice(0, 200) : `${name}'s professional portfolio on Yana.`;
   const image = profile.photo ?? '';
   const url = `${BASE_URL}/${username}`;
   const tags = ogTags({ title, description, image, url });
@@ -73,7 +73,12 @@ exports.portfolioPreview = onRequest({ region: 'us-central1', invoker: 'public' 
     return res.send(`<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />\n    ${tags}\n</head><body><p><a href="${esc(url)}">${esc(name)}'s portfolio</a></p></body></html>`);
   }
 
-  return res.send(spa.replace(/(<title>)[^<]*(<\/title>)/, tags));
+  // Strip existing title + OG/Twitter tags from the SPA then inject user-specific ones
+  const cleaned = spa
+    .replace(/<title>[^<]*<\/title>/i, '')
+    .replace(/<meta\s[^>]*property="og:[^"]*"[^>]*\/?>/gi, '')
+    .replace(/<meta\s[^>]*name="twitter:[^"]*"[^>]*\/?>/gi, '');
+  return res.send(cleaned.replace(/<head>/, `<head>\n    ${tags}`));
 });
 
 // Proxy email sending through this function so the Resend API key never
