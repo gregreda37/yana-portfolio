@@ -3,6 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiBookOpen } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
 import { sortJobsByDate, computePeriod } from '../utils/sortJobs';
+import { linkify } from '../utils/linkify';
 
 export default function Experience() {
   const { experience, profile } = useData();
@@ -62,7 +63,7 @@ export default function Experience() {
                         {(job.highlights ?? []).map((h, idx) => (
                           <li key={idx} className="flex gap-3 font-body text-sm text-gray-500 leading-relaxed">
                             <span className="text-accent-300 mt-1 shrink-0">◆</span>
-                            {h}
+                            {linkify(h, 'underline hover:opacity-80')}
                           </li>
                         ))}
                       </ul>
@@ -100,9 +101,9 @@ export default function Experience() {
 
               {/* Availability card */}
               <div className="mt-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl p-6 text-white text-center shadow-md">
-                <p className="font-display text-2xl font-light mb-2">Open to</p>
+                <p className="font-display text-2xl font-light mb-2">Open to Connect</p>
                 <p className="font-body text-sm opacity-90 leading-relaxed">
-                  {profile.availabilityNote}
+                  {linkify(profile.availabilityNote, 'underline hover:opacity-80')}
                 </p>
                 <a href="#contact" className="mt-4 inline-block bg-white text-accent-600 font-body font-semibold text-sm px-5 py-2.5 rounded-full hover:bg-accent-50 transition-colors">
                   Let's Talk

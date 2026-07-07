@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { FiLinkedin, FiMail, FiHeart, FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi';
 import { SiTiktok } from 'react-icons/si';
 import { useData } from '../contexts/DataContext';
+import { linkify } from '../utils/linkify';
 
 const SOCIAL_ICONS = [
   { key: 'linkedin',  Icon: FiLinkedin,  label: 'LinkedIn' },
@@ -66,8 +67,8 @@ export default function About() {
             <h2 className="section-title mb-6">
               {[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'About Me'}
             </h2>
-            {profile.bio1 && <p className="font-body text-gray-500 leading-relaxed mb-4">{profile.bio1}</p>}
-            {profile.bio2 && <p className="font-body text-gray-500 leading-relaxed mb-8">{profile.bio2}</p>}
+            {profile.bio1 && <p className="font-body text-gray-500 leading-relaxed mb-4">{linkify(profile.bio1, 'text-accent-500 underline hover:opacity-80')}</p>}
+            {profile.bio2 && <p className="font-body text-gray-500 leading-relaxed mb-8">{linkify(profile.bio2, 'text-accent-500 underline hover:opacity-80')}</p>}
             {!hasBio && profile.title && (
               <p className="font-body text-lg text-accent-500 font-medium mb-8">{profile.title}</p>
             )}
@@ -141,7 +142,7 @@ export default function About() {
             </div>
 
             <p className="font-body text-gray-500 leading-relaxed mb-6 max-w-3xl">
-              {healthcare.summary}
+              {linkify(healthcare.summary, 'text-accent-500 underline hover:opacity-80')}
             </p>
 
             <div className="grid sm:grid-cols-2 gap-3 mb-6">
@@ -152,7 +153,7 @@ export default function About() {
                   <div key={i} className="flex gap-3 items-start bg-white/70 rounded-xl px-4 py-3">
                     <span className="mt-0.5 shrink-0 text-lg leading-none" style={{ color: 'var(--accent-300)' }}>◆</span>
                     <div className="min-w-0">
-                      <p className="font-body text-sm text-gray-600 leading-relaxed">{text}</p>
+                      <p className="font-body text-sm text-gray-600 leading-relaxed">{linkify(text, 'text-accent-500 underline hover:opacity-80')}</p>
                       {date && (
                         <p className="font-body text-xs mt-1" style={{ color: 'var(--accent-400)' }}>{date}</p>
                       )}
