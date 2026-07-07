@@ -14,7 +14,7 @@ export const DEFAULTS = {
   experience: { jobs: [], education: [], skills: [] },
   healthcare: { label: 'Specialty Background', summary: '', highlights: [] },
   testimonials: { items: [] },
-  blog: { posts: [], categories: [], sectionLabel: 'Insights', sectionTitle: 'Sales insights & strategy.', sectionDescription: 'Practical frameworks and lessons from years in the field.' },
+  blog: { posts: [], categories: [], sectionLabel: 'Insights', sectionTitle: 'Thoughts worth sharing.', sectionDescription: 'A mix of lessons, perspectives, and ideas from my work and life.' },
   books: { items: [] },
   calendly: { url: '' },
   settings: {
