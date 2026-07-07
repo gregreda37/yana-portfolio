@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
-import { sortJobsByDate } from '../utils/sortJobs';
+import { sortJobsByDate, computePeriod, MONTHS, YEARS } from '../utils/sortJobs';
 
-const blankJob = () => ({ id: Date.now(), role: '', company: '', period: '', location: '', highlights: [] });
+const blankJob = () => ({
+  id: Date.now(), role: '', company: '',
+  startMonth: '', startYear: '', endMonth: '', endYear: '', endPresent: false,
+  period: '', location: '', highlights: [],
+});
 const blankEdu = () => ({ id: Date.now(), degree: '', school: '', year: '' });
 
 export default function EditExperience({ onToast }) {
@@ -21,7 +25,7 @@ export default function EditExperience({ onToast }) {
     setSaving(true);
     try {
       await saveSection('experience', {
-        jobs: sortJobsByDate(jobs),
+        jobs: sortJobsByDate(jobs.map(j => ({ ...j, period: computePeriod(j) }))),
         education,
         skills: skills.split(',').map(s => s.trim()).filter(Boolean),
       });
@@ -66,12 +70,55 @@ export default function EditExperience({ onToast }) {
             <div key={job.id}>
               {editJobIdx === idx ? (
                 <div className="admin-card border-2 border-blush-300 space-y-3">
-                  {[['Role / Title', 'role'], ['Company', 'company'], ['Period', 'period'], ['Location', 'location']].map(([label, key]) => (
+                  {[['Role / Title', 'role'], ['Company', 'company'], ['Location', 'location']].map(([label, key]) => (
                     <div key={key}>
                       <label className="admin-label">{label}</label>
-                      <input value={editJob[key]} onChange={e => setJobField(key, e.target.value)} className="admin-input" />
+                      <input value={editJob[key] ?? ''} onChange={e => setJobField(key, e.target.value)} className="admin-input" />
                     </div>
                   ))}
+
+                  {/* Period — structured month + year pickers */}
+                  <div>
+                    <label className="admin-label">Period</label>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <select value={editJob.startMonth ?? ''} onChange={e => setJobField('startMonth', e.target.value)} className="admin-input w-auto">
+                        <option value="">Month</option>
+                        {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <select value={editJob.startYear ?? ''} onChange={e => setJobField('startYear', e.target.value)} className="admin-input w-auto">
+                        <option value="">Year</option>
+                        {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                      <span className="font-body text-gray-400 px-1">–</span>
+                      {editJob.endPresent ? (
+                        <button
+                          type="button"
+                          onClick={() => setJobField('endPresent', false)}
+                          className="font-body text-xs font-semibold px-3 py-1.5 rounded-full bg-accent-100 text-accent-700 border border-accent-200 hover:bg-accent-200 transition-colors"
+                        >
+                          Present ✕
+                        </button>
+                      ) : (
+                        <>
+                          <select value={editJob.endMonth ?? ''} onChange={e => setJobField('endMonth', e.target.value)} className="admin-input w-auto">
+                            <option value="">Month</option>
+                            {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                          </select>
+                          <select value={editJob.endYear ?? ''} onChange={e => setJobField('endYear', e.target.value)} className="admin-input w-auto">
+                            <option value="">Year</option>
+                            {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => { setJobField('endPresent', true); setJobField('endMonth', ''); setJobField('endYear', ''); }}
+                            className="font-body text-xs font-semibold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 transition-colors"
+                          >
+                            Set Present
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <div>
                     <label className="admin-label">Highlights (one per line)</label>
                     <textarea
@@ -90,7 +137,7 @@ export default function EditExperience({ onToast }) {
                 <div className="admin-card flex items-start justify-between gap-4">
                   <div>
                     <p className="font-body font-semibold text-gray-800 text-sm">{job.role} <span className="text-blush-500">@ {job.company}</span></p>
-                    <p className="font-body text-xs text-gray-400">{job.period} · {job.location}</p>
+                    <p className="font-body text-xs text-gray-400">{computePeriod(job)} · {job.location}</p>
                     <p className="font-body text-xs text-gray-500 mt-1">{job.highlights.length} highlight{job.highlights.length !== 1 ? 's' : ''}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">

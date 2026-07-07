@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiBookOpen } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
-import { sortJobsByDate } from '../utils/sortJobs';
+import { sortJobsByDate, computePeriod } from '../utils/sortJobs';
 
 export default function Experience() {
   const { experience, profile } = useData();
@@ -51,7 +51,7 @@ export default function Experience() {
                           <p className="font-body text-accent-500 font-semibold text-sm">{job.company}</p>
                         </div>
                         <span className="font-body text-xs text-gray-400 bg-accent-50 px-3 py-1 rounded-full border border-accent-100">
-                          {job.period}
+                          {computePeriod(job)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">

@@ -1,61 +1,95 @@
-// One-time migration: sort all users' experience.jobs by end date, descending.
-// Run from the repo root: node scripts/sort-experience.js
+// Migration: parse free-text period strings into structured fields + re-sort.
+// Run: node scripts/sort-experience.cjs
 
 const admin = require('../functions/node_modules/firebase-admin');
-
 if (!admin.apps.length) admin.initializeApp({ projectId: 'yana-f9a11' });
 const db = admin.firestore();
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
 const MONTH_MAP = {
-  jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
-  january:0, february:1, march:2, april:3, june:5, july:6, august:7,
-  september:8, october:9, november:10, december:11,
+  jan:'Jan',feb:'Feb',mar:'Mar',apr:'Apr',may:'May',jun:'Jun',
+  jul:'Jul',aug:'Aug',sep:'Sep',oct:'Oct',nov:'Nov',dec:'Dec',
+  january:'Jan',february:'Feb',march:'Mar',april:'Apr',june:'Jun',
+  july:'Jul',august:'Aug',september:'Sep',october:'Oct',november:'Nov',december:'Dec',
 };
 
-function periodEndMs(period) {
-  if (!period) return 0;
-  const s = period.toLowerCase().trim();
-  if (/present|current|now/.test(s)) return 99999999999999;
-  const parts = s.split(/\s*[–—\-]\s*/);
-  const end = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).trim();
-  const monthYear = end.match(/([a-z]+)\.?\s+(\d{4})/);
-  if (monthYear) {
-    const month = MONTH_MAP[monthYear[1].slice(0, 3)];
-    const year = parseInt(monthYear[2], 10);
-    if (month !== undefined && !isNaN(year)) return new Date(year, month).getTime();
+function parsePart(str) {
+  str = str.trim().toLowerCase();
+  if (/present|current|now/.test(str)) return { present: true };
+  const monthYear = str.match(/([a-z]+)\.?\s+(\d{4})/);
+  if (monthYear) return { month: MONTH_MAP[monthYear[1]] ?? '', year: monthYear[2] };
+  const yearOnly = str.match(/\b(\d{4})\b/);
+  if (yearOnly) return { month: '', year: yearOnly[1] };
+  return null;
+}
+
+function parsePeriod(period) {
+  if (!period) return null;
+  const parts = period.trim().split(/\s*[–—\-]\s*/);
+  const start = parsePart(parts[0]);
+  const end   = parts.length > 1 ? parsePart(parts[parts.length - 1]) : null;
+  if (!start) return null;
+  return {
+    startMonth: start.month ?? '',
+    startYear:  start.year  ?? '',
+    endPresent: end?.present ?? false,
+    endMonth:   end?.present ? '' : (end?.month ?? ''),
+    endYear:    end?.present ? '' : (end?.year  ?? ''),
+  };
+}
+
+function computePeriod(job) {
+  if (!job.startYear && !job.startMonth) return job.period ?? '';
+  const start = [job.startMonth, job.startYear].filter(Boolean).join(' ');
+  const end   = job.endPresent ? 'Present' : [job.endMonth, job.endYear].filter(Boolean).join(' ');
+  return end ? `${start} – ${end}` : start;
+}
+
+function jobEndMs(job) {
+  if (job.endPresent) return 99999999999999;
+  if (job.endYear) {
+    const mi = MONTHS.indexOf(job.endMonth);
+    return new Date(parseInt(job.endYear, 10), mi >= 0 ? mi : 11).getTime();
   }
-  const yearOnly = end.match(/\b(\d{4})\b/);
-  if (yearOnly) return new Date(parseInt(yearOnly[1], 10), 11, 31).getTime();
   return 0;
 }
 
 async function run() {
   const usernamesSnap = await db.collection('usernames').get();
   const uids = usernamesSnap.docs.map(d => d.data().uid).filter(Boolean);
-  console.log(`Found ${uids.length} user(s)`);
+  console.log(`Found ${uids.length} user(s)\n`);
 
   for (const uid of uids) {
-    const ref = db.doc(`users/${uid}/portfolio/experience`);
+    const ref  = db.doc(`users/${uid}/portfolio/experience`);
     const snap = await ref.get();
-    if (!snap.exists) { console.log(`  ${uid}: no experience doc, skipping`); continue; }
+    if (!snap.exists) { console.log(`  ${uid}: no experience doc`); continue; }
 
-    const data = snap.data();
-    const jobs = data.jobs ?? [];
-    if (!jobs.length) { console.log(`  ${uid}: no jobs, skipping`); continue; }
+    const jobs = snap.data().jobs ?? [];
+    if (!jobs.length) { console.log(`  ${uid}: no jobs`); continue; }
 
-    const sorted = [...jobs].sort((a, b) => periodEndMs(b.period) - periodEndMs(a.period));
+    const migrated = jobs.map(job => {
+      if (job.startYear || job.startMonth) {
+        // Already structured — just recompute the display string
+        return { ...job, period: computePeriod(job) };
+      }
+      const parsed = parsePeriod(job.period);
+      if (!parsed) return job;
+      return { ...job, ...parsed, period: computePeriod({ ...job, ...parsed }) };
+    });
 
-    const changed = sorted.some((j, i) => j !== jobs[i]);
-    if (!changed) { console.log(`  ${uid}: already in order`); continue; }
+    const sorted = [...migrated].sort((a, b) => jobEndMs(b) - jobEndMs(a));
 
-    console.log(`  ${uid}: reordering ${jobs.length} jobs`);
-    sorted.forEach((j, i) => console.log(`    ${i + 1}. ${j.period ?? '(no period)'} — ${j.role} @ ${j.company}`));
+    console.log(`  ${uid}: ${sorted.length} job(s)`);
+    sorted.forEach((j, i) =>
+      console.log(`    ${i + 1}. ${j.period || '(no period)'}  —  ${j.role} @ ${j.company}`)
+    );
 
     await ref.update({ jobs: sorted });
-    console.log(`  ${uid}: saved`);
+    console.log(`  saved\n`);
   }
 
-  console.log('Done.');
+  console.log('Migration complete.');
   process.exit(0);
 }
 
