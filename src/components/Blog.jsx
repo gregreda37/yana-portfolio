@@ -25,6 +25,9 @@ export default function Blog() {
   const { blog, books: booksData } = useData();
   const blogPosts = blog.posts ?? [];
   const recentReads = booksData.items ?? [];
+  const sectionLabel = blog.sectionLabel || 'Insights';
+  const sectionTitle = blog.sectionTitle || 'Sales insights & strategy.';
+  const sectionDescription = blog.sectionDescription || '';
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [selectedPost, setSelectedPost] = useState(null);
@@ -67,11 +70,11 @@ export default function Blog() {
       <div className="max-w-6xl mx-auto">
         {blogPosts.length > 0 && (
           <div className="text-center mb-10">
-            <p className="section-subtitle">Insights</p>
-            <h2 className="section-title">Sales insights & strategy.</h2>
-            <p className="font-body text-gray-400 mt-3 max-w-md mx-auto">
-              Practical frameworks and lessons from years in the field.
-            </p>
+            {sectionLabel && <p className="section-subtitle">{sectionLabel}</p>}
+            {sectionTitle && <h2 className="section-title">{sectionTitle}</h2>}
+            {sectionDescription && (
+              <p className="font-body text-gray-400 mt-3 max-w-md mx-auto">{sectionDescription}</p>
+            )}
           </div>
         )}
 

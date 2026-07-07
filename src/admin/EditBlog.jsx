@@ -12,6 +12,10 @@ const blank = (categories) => ({
 export default function EditBlog({ onToast }) {
   const { blog, saveSection } = useData();
 
+  const [sectionLabel, setSectionLabel] = useState(blog.sectionLabel ?? 'Insights');
+  const [sectionTitle, setSectionTitle] = useState(blog.sectionTitle ?? 'Sales insights & strategy.');
+  const [sectionDescription, setSectionDescription] = useState(blog.sectionDescription ?? 'Practical frameworks and lessons from years in the field.');
+
   const initialCategories = blog.categories?.length ? blog.categories : DEFAULT_CATEGORIES;
   const [categories, setCategories] = useState(initialCategories);
   const [newCategory, setNewCategory] = useState('');
@@ -40,7 +44,7 @@ export default function EditBlog({ onToast }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSection('blog', { posts, categories });
+      await saveSection('blog', { posts, categories, sectionLabel, sectionTitle, sectionDescription });
       onToast('Blog posts saved!');
     } catch {
       onToast('Save failed — check your connection and try again.');
@@ -53,6 +57,38 @@ export default function EditBlog({ onToast }) {
     <div>
       <h2 className="admin-section-title">Blog Posts</h2>
       <p className="admin-section-desc">Articles shown in the Insights section. Body supports **bold** markdown.</p>
+
+      {/* ── Section Header ─────────────────────────────────────────────── */}
+      <div className="mt-6 bg-gray-50 border border-gray-100 rounded-2xl p-5 space-y-3">
+        <label className="admin-label mb-1 block">Section Header</label>
+        <div>
+          <label className="admin-label">Eyebrow Label</label>
+          <input
+            className="admin-input"
+            placeholder="e.g. Insights, Thoughts, Resources"
+            value={sectionLabel}
+            onChange={e => setSectionLabel(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="admin-label">Section Title</label>
+          <input
+            className="admin-input"
+            placeholder="e.g. Sales insights & strategy."
+            value={sectionTitle}
+            onChange={e => setSectionTitle(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="admin-label">Description</label>
+          <input
+            className="admin-input"
+            placeholder="One line shown below the title"
+            value={sectionDescription}
+            onChange={e => setSectionDescription(e.target.value)}
+          />
+        </div>
+      </div>
 
       {/* ── Category Manager ───────────────────────────────────────────── */}
       <div className="mt-6 bg-gray-50 border border-gray-100 rounded-2xl p-5">
