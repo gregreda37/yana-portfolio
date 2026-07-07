@@ -32,7 +32,25 @@ function ogTags({ title, description, image, url }) {
   ].filter(Boolean).join('\n    ');
 }
 
-function readSPA() {
+// Fetch the SPA shell from Firebase Hosting so we always serve the latest
+// asset hashes without needing to redeploy this function after every hosting deploy.
+// Cache per Cloud Run instance (refreshes on cold start or every 5 min).
+const HOSTING_INDEX_URL = 'https://yana-f9a11.web.app/index.html';
+let spaCache = { html: null, ts: 0 };
+
+async function getSPA() {
+  const now = Date.now();
+  if (spaCache.html && (now - spaCache.ts) < 300_000) return spaCache.html;
+  try {
+    const r = await fetch(HOSTING_INDEX_URL, { signal: AbortSignal.timeout(4000) });
+    if (r.ok) {
+      spaCache = { html: await r.text(), ts: now };
+      return spaCache.html;
+    }
+  } catch (e) {
+    console.warn('getSPA fetch failed, using bundled fallback:', e.message);
+  }
+  // Bundled fallback (may have stale hashes but better than nothing)
   try { return fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'); } catch { return null; }
 }
 
@@ -40,7 +58,7 @@ exports.portfolioPreview = onRequest({ region: 'us-central1', invoker: 'public' 
   const username = (req.path || '/').replace(/^\//, '').split('/')[0];
 
   if (!username) {
-    const spa = readSPA();
+    const spa = await getSPA();
     res.set('Cache-Control', 'public, max-age=60');
     return spa ? res.set('Content-Type', 'text/html').send(spa) : res.redirect(302, BASE_URL);
   }
@@ -67,7 +85,7 @@ exports.portfolioPreview = onRequest({ region: 'us-central1', invoker: 'public' 
   res.set('Content-Type', 'text/html');
 
   const isCrawler = CRAWLER_RE.test(req.headers['user-agent'] || '');
-  const spa = readSPA();
+  const spa = isCrawler ? null : await getSPA();
 
   if (isCrawler || !spa) {
     return res.send(`<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />\n    ${tags}\n</head><body><p><a href="${esc(url)}">${esc(name)}'s portfolio</a></p></body></html>`);
