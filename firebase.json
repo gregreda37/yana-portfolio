@@ -8,10 +8,10 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "/admin",    "destination": "/index.html" },
+      { "source": "/admin/**", "destination": "/index.html" },
+      { "source": "/*",        "function": "portfolioPreview" },
+      { "source": "**",        "destination": "/index.html" }
     ]
   },
   "functions": {

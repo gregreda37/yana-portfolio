@@ -65,16 +65,18 @@ export default function Blog() {
   return (
     <section id="blog" className="py-24 px-6 bg-white" ref={ref}>
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10">
-          <p className="section-subtitle">Insights</p>
-          <h2 className="section-title">Sales insights & strategy.</h2>
-          <p className="font-body text-gray-400 mt-3 max-w-md mx-auto">
-            Practical frameworks and lessons from years in the field.
-          </p>
-        </div>
+        {blogPosts.length > 0 && (
+          <div className="text-center mb-10">
+            <p className="section-subtitle">Insights</p>
+            <h2 className="section-title">Sales insights & strategy.</h2>
+            <p className="font-body text-gray-400 mt-3 max-w-md mx-auto">
+              Practical frameworks and lessons from years in the field.
+            </p>
+          </div>
+        )}
 
         {/* Category filter pills */}
-        {categories.length > 0 && (
+        {blogPosts.length > 0 && categories.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -175,7 +177,7 @@ export default function Blog() {
             initial={{ opacity: 0, y: 28 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-20"
+            className={blogPosts.length > 0 ? 'mt-20' : ''}
           >
             {/* Header + genre filters */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">

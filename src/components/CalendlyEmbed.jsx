@@ -7,7 +7,7 @@ export default function CalendlyEmbed({ url }) {
   const scriptLoaded = useRef(false);
 
   useEffect(() => {
-    if (scriptLoaded.current) return;
+    if (!url || scriptLoaded.current) return;
     scriptLoaded.current = true;
 
     const existing = document.querySelector('script[src*="calendly.com/assets/external/widget.js"]');
@@ -17,7 +17,7 @@ export default function CalendlyEmbed({ url }) {
     script.src = 'https://assets.calendly.com/assets/external/widget.js';
     script.async = true;
     document.head.appendChild(script);
-  }, []);
+  }, [url]);
 
   if (!url) return null;
 
