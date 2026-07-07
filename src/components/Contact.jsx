@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { FiMail, FiSend, FiMapPin, FiLinkedin, FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiFileText, FiCheck } from 'react-icons/fi';
 import { SiTiktok } from 'react-icons/si';
@@ -17,7 +17,19 @@ const SOCIAL_ICONS = [
 const inputCls = 'w-full font-body text-sm border border-accent-200 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-accent-300 focus:border-transparent transition-all placeholder:text-gray-300';
 
 export default function Contact() {
-  const { profile, uid } = useData();
+  const { profile, uid, calendly, settings } = useData();
+  const calendlyUrl = settings?.visible?.calendly !== false ? calendly?.url : null;
+  const scriptLoaded = useRef(false);
+
+  useEffect(() => {
+    if (!calendlyUrl || scriptLoaded.current) return;
+    scriptLoaded.current = true;
+    if (document.querySelector('script[src*="calendly.com/assets/external/widget.js"]')) return;
+    const s = document.createElement('script');
+    s.src = 'https://assets.calendly.com/assets/external/widget.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }, [calendlyUrl]);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
 
@@ -127,6 +139,16 @@ export default function Contact() {
             <p className="font-body text-sm text-gray-400 italic pt-1">
               Typically responds within 24 hours on business days.
             </p>
+
+            {calendlyUrl && (
+              <div className="mt-4 rounded-2xl overflow-hidden border border-accent-100 bg-white/60">
+                <div
+                  className="calendly-inline-widget"
+                  data-url={calendlyUrl}
+                  style={{ minWidth: '280px', height: '660px' }}
+                />
+              </div>
+            )}
           </motion.div>
 
           {/* Right — contact form */}
