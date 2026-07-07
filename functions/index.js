@@ -1,8 +1,80 @@
-const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
 if (!admin.apps.length) admin.initializeApp();
+const db = admin.firestore();
+
+// ── OG / link-preview ─────────────────────────────────────────────────────────
+
+const CRAWLER_RE = /bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slackbot|linkedinbot|discordbot|telegrambot|applebot|preview|Slack|Telegram/i;
+const BASE_URL = 'https://findyana.com';
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function ogTags({ title, description, image, url }) {
+  return [
+    `<title>${esc(title)}</title>`,
+    `<meta property="og:type" content="profile" />`,
+    `<meta property="og:site_name" content="Yana" />`,
+    `<meta property="og:title" content="${esc(title)}" />`,
+    `<meta property="og:description" content="${esc(description)}" />`,
+    image ? `<meta property="og:image" content="${esc(image)}" />` : '',
+    `<meta property="og:url" content="${esc(url)}" />`,
+    `<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />`,
+    `<meta name="twitter:title" content="${esc(title)}" />`,
+    `<meta name="twitter:description" content="${esc(description)}" />`,
+    image ? `<meta name="twitter:image" content="${esc(image)}" />` : '',
+  ].filter(Boolean).join('\n    ');
+}
+
+function readSPA() {
+  try { return fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'); } catch { return null; }
+}
+
+exports.portfolioPreview = onRequest({ region: 'us-central1', invoker: 'public' }, async (req, res) => {
+  const username = (req.path || '/').replace(/^\//, '').split('/')[0];
+
+  if (!username) {
+    const spa = readSPA();
+    res.set('Cache-Control', 'public, max-age=60');
+    return spa ? res.set('Content-Type', 'text/html').send(spa) : res.redirect(302, BASE_URL);
+  }
+
+  let profile = {};
+  try {
+    const uSnap = await db.collection('usernames').doc(username).get();
+    if (uSnap.exists) {
+      const pSnap = await db.doc(`users/${uSnap.data().uid}/portfolio/profile`).get();
+      if (pSnap.exists) profile = pSnap.data();
+    }
+  } catch (e) {
+    console.error('portfolioPreview Firestore error:', e.message);
+  }
+
+  const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || username;
+  const title = profile.title ? `${name} | ${profile.title}` : name;
+  const description = profile.bio1 ? profile.bio1.slice(0, 200) : `${name}'s professional portfolio.`;
+  const image = profile.photo ?? '';
+  const url = `${BASE_URL}/${username}`;
+  const tags = ogTags({ title, description, image, url });
+
+  res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  res.set('Content-Type', 'text/html');
+
+  const isCrawler = CRAWLER_RE.test(req.headers['user-agent'] || '');
+  const spa = readSPA();
+
+  if (isCrawler || !spa) {
+    return res.send(`<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />\n    ${tags}\n</head><body><p><a href="${esc(url)}">${esc(name)}'s portfolio</a></p></body></html>`);
+  }
+
+  return res.send(spa.replace(/(<title>)[^<]*(<\/title>)/, tags));
+});
 
 // Proxy email sending through this function so the Resend API key never
 // reaches the browser and browser CORS restrictions are bypassed.
