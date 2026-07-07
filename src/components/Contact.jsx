@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { FiMail, FiSend, FiMapPin, FiLinkedin, FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiFileText, FiCheck } from 'react-icons/fi';
+import { FiMail, FiSend, FiMapPin, FiLinkedin, FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiFileText, FiCheck, FiCalendar } from 'react-icons/fi';
 import { SiTiktok } from 'react-icons/si';
 import { useData } from '../contexts/DataContext';
 import { submitContactMessage, submitResumeRequest } from '../firebase/db';
@@ -20,6 +20,13 @@ export default function Contact() {
   const { profile, uid, calendly, settings } = useData();
   const calendlyUrl = settings?.visible?.calendly !== false ? calendly?.url : null;
   const scriptLoaded = useRef(false);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [status, setStatus] = useState(null);
+  const [reqForm, setReqForm] = useState({ name: '', email: '', message: '' });
+  const [reqStatus, setReqStatus] = useState(null);
 
   useEffect(() => {
     if (!calendlyUrl || scriptLoaded.current) return;
@@ -30,14 +37,6 @@ export default function Contact() {
     s.async = true;
     document.head.appendChild(s);
   }, [calendlyUrl]);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
-
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [status, setStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
-
-  const [reqForm, setReqForm] = useState({ name: '', email: '', message: '' });
-  const [reqStatus, setReqStatus] = useState(null);
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
   const handleReqChange = e => setReqForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -46,12 +45,8 @@ export default function Contact() {
     e.preventDefault();
     if (!uid) return;
     setStatus('sending');
-    try {
-      await submitContactMessage(uid, form);
-      setStatus('sent');
-    } catch {
-      setStatus('error');
-    }
+    try { await submitContactMessage(uid, form); setStatus('sent'); }
+    catch { setStatus('error'); }
   };
 
   const handleReqSubmit = async (e) => {
@@ -59,25 +54,20 @@ export default function Contact() {
     if (!uid) return;
     setReqStatus('submitting');
     try {
-      await submitResumeRequest(uid, {
-        requesterName: reqForm.name,
-        requesterEmail: reqForm.email,
-        message: reqForm.message,
-      });
+      await submitResumeRequest(uid, { requesterName: reqForm.name, requesterEmail: reqForm.email, message: reqForm.message });
       setReqStatus('sent');
-    } catch {
-      setReqStatus('error');
-    }
+    } catch { setReqStatus('error'); }
   };
 
   const activeSocials = SOCIAL_ICONS.filter(s => profile[s.key]);
+  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
 
   return (
     <section id="contact" className="py-24 px-6 bg-gradient-to-br from-accent-50 to-accent-100" ref={ref}>
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <p className="section-subtitle">Let's Connect</p>
           <h2 className="section-title">Get in touch.</h2>
           <p className="font-body text-gray-400 mt-3 max-w-md mx-auto">
@@ -85,81 +75,82 @@ export default function Contact() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-10 items-start">
-
-          {/* Left — contact info */}
-          <motion.div
-            initial={{ opacity: 0, x: -24 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="lg:col-span-2 flex flex-col gap-5"
-          >
-            {profile.email && (
-              <a href={`mailto:${profile.email}`} className="flex items-center gap-3 group">
-                <div className="w-10 h-10 bg-accent-100 rounded-xl flex items-center justify-center shrink-0">
-                  <FiMail className="text-accent-500" size={16} />
-                </div>
-                <span className="font-body text-sm text-gray-600 group-hover:text-accent-500 transition-colors">
-                  {profile.email}
-                </span>
-              </a>
-            )}
-
-            {profile.location && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
-                  <FiMapPin className="text-gray-400" size={16} />
-                </div>
-                <div>
-                  <p className="font-body text-sm text-gray-600">{profile.location}</p>
-                  <p className="font-body text-xs text-gray-400 mt-0.5">Open to remote & hybrid</p>
-                </div>
+        {/* ── Info bar ── full width, always visible ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="card"
+        >
+          <div className="flex flex-wrap gap-x-8 gap-y-4 items-start justify-between">
+            {/* Name + title */}
+            {fullName && (
+              <div className="shrink-0">
+                <p className="font-display text-xl text-gray-800">{fullName}</p>
+                {profile.title && <p className="font-body text-sm text-accent-500 mt-0.5">{profile.title}</p>}
               </div>
             )}
 
-            {activeSocials.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {activeSocials.map(({ key, Icon, label }) => (
-                  <a
-                    key={key}
-                    href={profile[key]}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={label}
-                    className="flex items-center gap-2 font-body text-xs font-semibold px-3.5 py-2 rounded-full border transition-colors hover:opacity-80"
-                    style={{ color: 'var(--accent-600)', borderColor: 'var(--accent-200)', backgroundColor: 'var(--accent-50)' }}
-                  >
-                    <Icon size={13} />
-                    {label}
-                  </a>
-                ))}
-              </div>
-            )}
+            {/* Contact details */}
+            <div className="flex flex-wrap gap-x-6 gap-y-3 items-center">
+              {profile.email && (
+                <a href={`mailto:${profile.email}`} className="flex items-center gap-2 group">
+                  <div className="w-8 h-8 bg-accent-100 rounded-lg flex items-center justify-center shrink-0">
+                    <FiMail className="text-accent-500" size={13} />
+                  </div>
+                  <span className="font-body text-sm text-gray-600 group-hover:text-accent-500 transition-colors">
+                    {profile.email}
+                  </span>
+                </a>
+              )}
+              {profile.location && (
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                    <FiMapPin className="text-gray-400" size={13} />
+                  </div>
+                  <span className="font-body text-sm text-gray-600">{profile.location}</span>
+                </div>
+              )}
+            </div>
 
-            <p className="font-body text-sm text-gray-400 italic pt-1">
+            {/* Response time */}
+            <p className="font-body text-sm text-gray-400 italic self-center">
               Typically responds within 24 hours on business days.
             </p>
+          </div>
 
-            {calendlyUrl && (
-              <div className="mt-4 rounded-2xl overflow-hidden border border-accent-100 bg-white/60">
-                <div
-                  className="calendly-inline-widget"
-                  data-url={calendlyUrl}
-                  style={{ minWidth: '280px', height: '660px' }}
-                />
-              </div>
-            )}
-          </motion.div>
+          {/* Socials */}
+          {activeSocials.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-accent-100">
+              {activeSocials.map(({ key, Icon, label }) => (
+                <a
+                  key={key}
+                  href={profile[key]}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  className="flex items-center gap-2 font-body text-xs font-semibold px-3.5 py-2 rounded-full border transition-colors hover:opacity-80"
+                  style={{ color: 'var(--accent-600)', borderColor: 'var(--accent-200)', backgroundColor: 'var(--accent-50)' }}
+                >
+                  <Icon size={13} />
+                  {label}
+                </a>
+              ))}
+            </div>
+          )}
+        </motion.div>
 
-          {/* Right — contact form */}
+        {/* ── Main cards: Send Message + Calendly ── */}
+        <div className={`grid gap-6 items-stretch ${calendlyUrl ? 'lg:grid-cols-2' : ''}`}>
+
+          {/* Send Message */}
           <motion.div
-            initial={{ opacity: 0, x: 24 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="lg:col-span-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
             {status === 'sent' ? (
-              <div className="card flex flex-col items-center justify-center text-center py-16">
+              <div className="card h-full flex flex-col items-center justify-center text-center py-16">
                 <div className="w-14 h-14 bg-accent-100 rounded-full flex items-center justify-center mb-4">
                   <span className="text-2xl">💌</span>
                 </div>
@@ -173,8 +164,17 @@ export default function Contact() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="card space-y-5">
-                <div className="grid sm:grid-cols-2 gap-5">
+              <form onSubmit={handleSubmit} className="card h-full flex flex-col space-y-5">
+                <div className="flex items-center gap-3 pb-1">
+                  <div className="w-9 h-9 bg-accent-100 rounded-xl flex items-center justify-center shrink-0">
+                    <FiSend className="text-accent-500" size={15} />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-xl text-gray-800">Send a Message</h3>
+                    <p className="font-body text-xs text-gray-400">I'll get back to you within 24 hours</p>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-2">Name</label>
                     <input type="text" name="name" required value={form.name} onChange={handleChange} placeholder="Your name" className={inputCls} />
@@ -188,9 +188,9 @@ export default function Contact() {
                   <label className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-2">Subject</label>
                   <input type="text" name="subject" required value={form.subject} onChange={handleChange} placeholder="What's this about?" className={inputCls} />
                 </div>
-                <div>
+                <div className="flex-1 flex flex-col">
                   <label className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-2">Message</label>
-                  <textarea name="message" required rows={5} value={form.message} onChange={handleChange} placeholder="Tell me about the opportunity or project..." className={`${inputCls} resize-none`} />
+                  <textarea name="message" required rows={5} value={form.message} onChange={handleChange} placeholder="Tell me about the opportunity or project..." className={`${inputCls} resize-none flex-1`} />
                 </div>
                 {status === 'error' && (
                   <p className="font-body text-xs text-red-500">Something went wrong — please try again.</p>
@@ -202,18 +202,43 @@ export default function Contact() {
               </form>
             )}
           </motion.div>
+
+          {/* Calendly — only when url is set */}
+          {calendlyUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="card overflow-hidden p-0 flex flex-col"
+            >
+              <div className="flex items-center gap-3 p-6 pb-0">
+                <div className="w-9 h-9 bg-accent-100 rounded-xl flex items-center justify-center shrink-0">
+                  <FiCalendar className="text-accent-500" size={15} />
+                </div>
+                <div>
+                  <h3 className="font-display text-xl text-gray-800">Schedule a Meeting</h3>
+                  <p className="font-body text-xs text-gray-400">Book a time that works for you</p>
+                </div>
+              </div>
+              <div
+                className="calendly-inline-widget flex-1"
+                data-url={calendlyUrl}
+                style={{ minWidth: '100%', height: '620px' }}
+              />
+            </motion.div>
+          )}
         </div>
 
-        {/* Resume request */}
+        {/* ── Resume request — always full width ── */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.25 }}
-          className="mt-10 rounded-3xl border border-accent-100 bg-white/60 p-8"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="card"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-accent-100 rounded-2xl flex items-center justify-center">
-              <FiFileText className="text-accent-500" size={18} />
+            <div className="w-9 h-9 bg-accent-100 rounded-xl flex items-center justify-center shrink-0">
+              <FiFileText className="text-accent-500" size={15} />
             </div>
             <div>
               <h3 className="font-display text-xl text-gray-800">Request My Formal Resume</h3>
@@ -259,6 +284,7 @@ export default function Contact() {
             </form>
           )}
         </motion.div>
+
       </div>
     </section>
   );
