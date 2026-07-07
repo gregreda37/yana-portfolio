@@ -2,13 +2,14 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiBookOpen } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
+import { sortJobsByDate } from '../utils/sortJobs';
 
 export default function Experience() {
   const { experience, profile } = useData();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
 
-  const jobs = experience?.jobs ?? [];
+  const jobs = sortJobsByDate(experience?.jobs);
   const education = experience?.education ?? [];
   const skills = experience?.skills ?? [];
   if (!jobs.length && !education.length && !skills.length) return null;
@@ -30,7 +31,7 @@ export default function Experience() {
               <div className="absolute left-3 top-0 bottom-0 w-px bg-accent-100" />
 
               <div className="space-y-10">
-                {(experience.jobs ?? []).map((job, i) => (
+                {jobs.map((job, i) => (
                   <motion.div
                     key={job.id}
                     initial={{ opacity: 0, x: -20 }}

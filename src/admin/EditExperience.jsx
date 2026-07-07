@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
+import { sortJobsByDate } from '../utils/sortJobs';
 
 const blankJob = () => ({ id: Date.now(), role: '', company: '', period: '', location: '', highlights: [] });
 const blankEdu = () => ({ id: Date.now(), degree: '', school: '', year: '' });
@@ -20,7 +21,7 @@ export default function EditExperience({ onToast }) {
     setSaving(true);
     try {
       await saveSection('experience', {
-        jobs,
+        jobs: sortJobsByDate(jobs),
         education,
         skills: skills.split(',').map(s => s.trim()).filter(Boolean),
       });
