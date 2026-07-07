@@ -37,7 +37,7 @@ function SocialField({ label, base, prefix, value, onChange, yanaField }) {
 }
 
 // Defined at module level — stable reference, never causes remount on keystroke
-function Field({ label, type = 'text', rows, value, onChange, yanaField }) {
+function Field({ label, type = 'text', rows, value, onChange, yanaField, placeholder }) {
   return (
     <div>
       <label className="admin-label">{label}</label>
@@ -47,6 +47,7 @@ function Field({ label, type = 'text', rows, value, onChange, yanaField }) {
           value={value ?? ''}
           onChange={onChange}
           data-yana-field={yanaField}
+          placeholder={placeholder}
           className="admin-input resize-none"
         />
       ) : (
@@ -55,6 +56,7 @@ function Field({ label, type = 'text', rows, value, onChange, yanaField }) {
           value={value ?? ''}
           onChange={onChange}
           data-yana-field={yanaField}
+          placeholder={placeholder}
           className="admin-input"
         />
       )}

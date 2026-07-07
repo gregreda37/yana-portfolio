@@ -68,7 +68,11 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
             updates.profile.firstName = parts[0] ?? '';
             updates.profile.lastName = parts.slice(1).join(' ') ?? '';
           }
-          setData({ ...DEFAULTS, ...updates });
+          // Deep-merge: each section gets DEFAULTS as a base so newly-added
+          // default fields are always present even if Firestore doesn't have them.
+          const merged = { ...DEFAULTS };
+          SECTIONS.forEach(s => { if (updates[s]) merged[s] = { ...DEFAULTS[s], ...updates[s] }; });
+          setData(merged);
         } else if (!readOnly) {
           // ── 2. First-time user: seed default data ───────────────────────
           try {
