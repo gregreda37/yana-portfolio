@@ -29,7 +29,11 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-center md:text-left">
             <p className="font-display text-3xl text-white font-light mb-1">{fullName}</p>
-            <p className="font-body text-sm">{profile.title} · {profile.location}</p>
+            <p className="font-body text-sm">
+              {profile.email && <a href={`mailto:${profile.email}`} className="hover:text-accent-400 transition-colors">{profile.email}</a>}
+              {profile.email && (profile.title || profile.location) && ' · '}
+              {[profile.title, profile.location].filter(Boolean).join(' · ')}
+            </p>
           </div>
 
           <nav>
