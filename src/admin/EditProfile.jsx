@@ -185,8 +185,10 @@ const EditProfile = forwardRef(function EditProfile({ onToast }, ref) {
         </div>
         <Field label="Location"           value={form.location}         onChange={e => set('location', e.target.value)} yanaField="location" />
         <Field label="Email"   type="email" value={form.email}          onChange={e => set('email', e.target.value)} yanaField="email" />
+        <Field label='Availability Card Title (e.g. "Open to Connect")' value={form.availabilityTitle ?? ''} onChange={e => set('availabilityTitle', e.target.value)} yanaField="availabilityTitle" placeholder="Open to Connect" />
+        <Field label='Availability Button Label (e.g. "Let\'s Talk")' value={form.availabilityButton ?? ''} onChange={e => set('availabilityButton', e.target.value)} yanaField="availabilityButton" placeholder="Let's Talk" />
         <div className="sm:col-span-2">
-          <Field label="Availability Note (sidebar card)" value={form.availabilityNote} onChange={e => set('availabilityNote', e.target.value)} yanaField="availabilityNote" />
+          <Field label="Availability Note (sidebar card body text)" value={form.availabilityNote} onChange={e => set('availabilityNote', e.target.value)} yanaField="availabilityNote" />
         </div>
       </div>
 

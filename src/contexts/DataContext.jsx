@@ -8,7 +8,7 @@ export const DEFAULTS = {
     bio1: '', bio2: '', location: '', email: '',
     linkedin: '', instagram: '', facebook: '',
     tiktok: '', twitter: '', youtube: '',
-    availabilityNote: '', photo: '',
+    availabilityNote: '', availabilityTitle: '', availabilityButton: '', photo: '',
   },
   metrics: { items: [] },
   experience: { jobs: [], education: [], skills: [] },
