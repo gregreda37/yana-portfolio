@@ -17,6 +17,12 @@ function PublicSiteContent() {
   const accentColor = settings?.accentColor ?? 'blush';
   const v = settings?.visible ?? {};
 
+  useEffect(() => {
+    if (!firestoreLoaded || !window.location.hash) return;
+    const el = document.querySelector(window.location.hash);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }, [firestoreLoaded]);
+
   if (!firestoreLoaded) {
     return (
       <div className="min-h-screen bg-blush-50 flex items-center justify-center">
