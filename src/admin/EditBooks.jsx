@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
 
 const COVER_COLORS = [
@@ -9,10 +10,14 @@ const TAG_COLORS = [
   'bg-blush-100 text-blush-600', 'bg-lavender-100 text-purple-600',
   'bg-pink-100 text-pink-600', 'bg-rose-100 text-rose-600', 'bg-purple-100 text-purple-600',
 ];
+const GENRES = [
+  'Business', 'Sales Strategy', 'Leadership', 'Negotiation', 'Productivity',
+  'Personal Development', 'Biography', 'Self-Help', 'Fiction', 'Psychology', 'Other',
+];
 const blankTakeaway = () => ({ heading: '', body: '' });
 const blank = () => ({
   id: Date.now(), title: '', author: '', year: new Date().getFullYear(),
-  rating: 5, genre: '', synopsis: '', applyToSales: '',
+  rating: 5, genre: '', hidden: false, synopsis: '', applyToSales: '',
   coverColor: COVER_COLORS[0], tagColor: TAG_COLORS[0],
   takeaways: [blankTakeaway()],
 });
@@ -69,7 +74,10 @@ export default function EditBooks({ onToast }) {
                   </div>
                   <div>
                     <label className="admin-label">Genre</label>
-                    <input value={editBook.genre} onChange={e => set('genre', e.target.value)} className="admin-input" />
+                    <select value={editBook.genre} onChange={e => set('genre', e.target.value)} className="admin-input">
+                      <option value="">— Select genre —</option>
+                      {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
                   </div>
                   <div>
                     <label className="admin-label">Rating (1–5)</label>
@@ -124,16 +132,23 @@ export default function EditBooks({ onToast }) {
                 </div>
               </div>
             ) : (
-              <div className="admin-card flex items-start justify-between gap-4">
+              <div className={`admin-card flex items-start justify-between gap-4 ${book.hidden ? 'opacity-50' : ''}`}>
                 <div className="flex gap-3">
                   <div className={`w-8 self-stretch rounded-lg bg-gradient-to-b ${book.coverColor} shrink-0`} />
                   <div>
                     <p className="font-body font-semibold text-sm text-gray-800">{book.title}</p>
-                    <p className="font-body text-xs text-gray-400">{book.author} · {book.year}</p>
+                    <p className="font-body text-xs text-gray-400">{book.author} · {book.year}{book.genre ? ` · ${book.genre}` : ''}</p>
                     <p className="font-body text-xs text-gray-500 mt-0.5">{book.takeaways.length} takeaway{book.takeaways.length !== 1 ? 's' : ''} · {'★'.repeat(book.rating)}</p>
                   </div>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex gap-2 shrink-0 items-center">
+                  <button
+                    onClick={() => setItems(p => p.map((b, i) => i === idx ? { ...b, hidden: !b.hidden } : b))}
+                    className="admin-btn-sm"
+                    title={book.hidden ? 'Show on portfolio' : 'Hide from portfolio'}
+                  >
+                    {book.hidden ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+                  </button>
                   <button onClick={() => openEdit(idx)} className="admin-btn-sm">Edit</button>
                   <button onClick={() => setItems(p => p.filter((_, i) => i !== idx))} className="admin-btn-sm text-red-500">Delete</button>
                 </div>

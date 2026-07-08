@@ -9,6 +9,7 @@ import SetupUsername from './pages/SetupUsername';
 import AdminDashboard from './admin/AdminDashboard';
 import ImportResume from './pages/ImportResume';
 import PublicPortfolio from './pages/PublicPortfolio';
+import VideoPage from './pages/VideoPage';
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
           } />
 
           <Route path="/:username" element={<PublicPortfolio />} />
+          <Route path="/:username/video" element={<VideoPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

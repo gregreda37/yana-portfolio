@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion';
-import { FiArrowDown } from 'react-icons/fi';
+import { FiArrowDown, FiPlay } from 'react-icons/fi';
+import { useParams } from 'react-router-dom';
 import logoUrl from '../assets/yvb-logo-original.svg';
 import { useData } from '../contexts/DataContext';
 
 export default function Hero() {
-  const { profile } = useData();
+  const { profile, video } = useData();
+  const { username } = useParams();
+  const hasVideo = !!(video?.url);
   return (
     <section
       id="hero"
@@ -88,8 +91,18 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 1.15 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <a href="#metrics" className="btn-primary">See My Results</a>
-          <a href="#contact" className="btn-outline">Work With Me</a>
+          <a href="#contact" className="btn-primary">Work With Me</a>
+          {hasVideo && (
+            <a
+              href={`/${username}/video`}
+              className="inline-flex items-center justify-center gap-2 font-body font-semibold text-sm px-6 py-3 rounded-full border-2 border-accent-300 text-accent-600 bg-white/60 backdrop-blur-sm hover:bg-accent-50 hover:border-accent-400 transition-all duration-200 shadow-sm"
+            >
+              <span className="w-6 h-6 rounded-full bg-accent-400 flex items-center justify-center shrink-0">
+                <FiPlay size={10} className="text-white translate-x-px" />
+              </span>
+              Watch My Story
+            </a>
+          )}
         </motion.div>
       </div>
 

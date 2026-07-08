@@ -17,6 +17,7 @@ export const DEFAULTS = {
   blog: { posts: [], categories: [], sectionLabel: 'Insights', sectionTitle: 'Thoughts worth sharing.', sectionDescription: 'A mix of lessons, perspectives, and ideas from my work and life.' },
   books: { items: [] },
   calendly: { url: '' },
+  video: { url: '', title: '', description: '', storagePath: '' },
   settings: {
     accentColor: 'blush',
     visible: {

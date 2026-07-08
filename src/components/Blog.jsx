@@ -24,7 +24,7 @@ function categoryColor(category, categories) {
 export default function Blog() {
   const { blog, books: booksData } = useData();
   const blogPosts = blog.posts ?? [];
-  const recentReads = booksData.items ?? [];
+  const recentReads = (booksData.items ?? []).filter(b => !b.hidden);
   const sectionLabel = blog.sectionLabel || 'Insights';
   const sectionTitle = blog.sectionTitle || 'Sales insights & strategy.';
   const sectionDescription = blog.sectionDescription || '';
