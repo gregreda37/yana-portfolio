@@ -233,35 +233,52 @@ export default function Blog() {
                         transition={{ duration: 0.18 }}
                         title={book.title}
                       >
-                        {/* Spine gradient */}
-                        <div className={`absolute inset-0 bg-gradient-to-b ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
-
-                        {/* Binding crease & highlight */}
-                        <div className="absolute left-0 top-0 w-3.5 h-full bg-white/25" />
-                        <div className="absolute left-3.5 top-0 w-px h-full bg-white/20" />
-
-                        {/* Right edge depth */}
-                        <div className="absolute right-0 top-0 w-2 h-full bg-black/20" />
-
-                        {/* Top inner shadow */}
-                        <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/15 to-transparent" />
-
-                        {/* Title — vertical, reads bottom-to-top */}
-                        <div className="absolute inset-4 flex items-center justify-center">
-                          <p
-                            className="font-display font-semibold text-white leading-none"
-                            style={{
-                              fontSize: 11,
-                              writingMode: 'vertical-rl',
-                              transform: 'rotate(180deg)',
-                              overflow: 'hidden',
-                              maxHeight: h - 32,
-                              textShadow: '0 1px 4px rgba(0,0,0,0.35)',
-                            }}
-                          >
-                            {book.title.length > 22 ? book.title.slice(0, 21) + '…' : book.title}
-                          </p>
-                        </div>
+                        {book.coverImageUrl ? (
+                          <>
+                            {/* Real cover image */}
+                            <img
+                              src={book.coverImageUrl}
+                              alt={book.title}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              style={{ objectPosition: 'center 10%' }}
+                            />
+                            {/* Binding crease */}
+                            <div className="absolute left-0 top-0 w-3 h-full bg-black/20" />
+                            <div className="absolute left-3 top-0 w-px h-full bg-white/15" />
+                            {/* Right edge */}
+                            <div className="absolute right-0 top-0 w-1.5 h-full bg-black/30" />
+                            {/* Top shadow */}
+                            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-black/20 to-transparent" />
+                          </>
+                        ) : (
+                          <>
+                            {/* Spine gradient */}
+                            <div className={`absolute inset-0 bg-gradient-to-b ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
+                            {/* Binding crease & highlight */}
+                            <div className="absolute left-0 top-0 w-3.5 h-full bg-white/25" />
+                            <div className="absolute left-3.5 top-0 w-px h-full bg-white/20" />
+                            {/* Right edge depth */}
+                            <div className="absolute right-0 top-0 w-2 h-full bg-black/20" />
+                            {/* Top inner shadow */}
+                            <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/15 to-transparent" />
+                            {/* Title — vertical, reads bottom-to-top */}
+                            <div className="absolute inset-4 flex items-center justify-center">
+                              <p
+                                className="font-display font-semibold text-white leading-none"
+                                style={{
+                                  fontSize: 11,
+                                  writingMode: 'vertical-rl',
+                                  transform: 'rotate(180deg)',
+                                  overflow: 'hidden',
+                                  maxHeight: h - 32,
+                                  textShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                                }}
+                              >
+                                {book.title.length > 22 ? book.title.slice(0, 21) + '…' : book.title}
+                              </p>
+                            </div>
+                          </>
+                        )}
 
                         {/* Active ribbon at top */}
                         {isActive && (
@@ -308,8 +325,19 @@ export default function Blog() {
                             : 'border-gray-100 bg-white opacity-80 hover:opacity-100'
                         }`}
                       >
-                        {/* Color band */}
-                        <div className={`h-1.5 bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
+                        {/* Cover image or color band */}
+                        {book.coverImageUrl ? (
+                          <div className="h-28 overflow-hidden relative">
+                            <img
+                              src={book.coverImageUrl}
+                              alt={book.title}
+                              className="w-full h-full object-cover object-top"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent" />
+                          </div>
+                        ) : (
+                          <div className={`h-1.5 bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
+                        )}
                         <div className="p-4">
                           <div className="flex items-center justify-between mb-2">
                             {book.genre ? (

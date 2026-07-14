@@ -53,7 +53,12 @@ export default function Metrics() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className={`grid gap-6 justify-center ${
+          metrics.items.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' :
+          metrics.items.length === 2 ? 'sm:grid-cols-2 max-w-xl mx-auto' :
+          metrics.items.length === 3 ? 'sm:grid-cols-3 max-w-3xl mx-auto' :
+          'sm:grid-cols-2 lg:grid-cols-4'
+        }`}>
           {(metrics.items ?? []).map((m, i) => {
             const Icon = iconMap[m.icon] ?? FiTarget;
             return (

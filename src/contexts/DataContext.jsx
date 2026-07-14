@@ -11,7 +11,7 @@ export const DEFAULTS = {
     availabilityNote: '', availabilityTitle: '', availabilityButton: '', photo: '',
   },
   metrics: { items: [] },
-  experience: { jobs: [], education: [], skills: [] },
+  experience: { jobs: [], education: [], skills: [], languages: [] },
   healthcare: { label: 'Specialty Background', summary: '', highlights: [] },
   testimonials: { items: [] },
   blog: { posts: [], categories: [], sectionLabel: 'Insights', sectionTitle: 'Thoughts worth sharing.', sectionDescription: 'A mix of lessons, perspectives, and ideas from my work and life.' },

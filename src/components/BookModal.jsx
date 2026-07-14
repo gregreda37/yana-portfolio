@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiExternalLink } from 'react-icons/fi';
 
 function Stars({ count }) {
   return (
@@ -42,26 +42,44 @@ export default function BookModal({ book, onClose }) {
           className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           onClick={e => e.stopPropagation()}
         >
-          {/* Header with book cover strip */}
-          <div className={`bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'} px-8 pt-8 pb-6 shrink-0`}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <span className={`font-body text-xs font-semibold px-2.5 py-1 rounded-full bg-white/30 text-white mb-3 inline-block`}>
-                  {book.genre}
-                </span>
-                <h2 className="font-display text-3xl font-light text-white leading-tight">{book.title}</h2>
-                <p className="font-body text-sm text-white/80 mt-1">{book.author} · {book.year}</p>
-                <div className="mt-2">
-                  <Stars count={book.rating} />
+          {/* Header */}
+          <div className={`bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'} shrink-0 relative`}>
+            <div className="flex items-stretch">
+              {/* Real cover image */}
+              {book.coverImageUrl && (
+                <div className="w-28 shrink-0 relative overflow-hidden">
+                  <img
+                    src={book.coverImageUrl}
+                    alt={book.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-y-0 right-0 w-6 bg-gradient-to-r from-transparent to-black/20" />
+                </div>
+              )}
+              {/* Info */}
+              <div className={`flex-1 px-7 pt-7 pb-6 ${book.coverImageUrl ? '' : 'w-full'}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    {book.genre && (
+                      <span className="font-body text-xs font-semibold px-2.5 py-1 rounded-full bg-white/30 text-white mb-3 inline-block">
+                        {book.genre}
+                      </span>
+                    )}
+                    <h2 className="font-display text-2xl md:text-3xl font-light text-white leading-tight">{book.title}</h2>
+                    <p className="font-body text-sm text-white/80 mt-1">{book.author} · {book.year}</p>
+                    <div className="mt-2">
+                      <Stars count={book.rating} />
+                    </div>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="shrink-0 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+                    aria-label="Close"
+                  >
+                    <FiX size={16} />
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={onClose}
-                className="shrink-0 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
-                aria-label="Close"
-              >
-                <FiX size={16} />
-              </button>
             </div>
           </div>
 
@@ -90,6 +108,21 @@ export default function BookModal({ book, onClose }) {
               <p className="font-body text-xs font-semibold uppercase tracking-widest text-accent-400 mb-2">How I Apply This</p>
               <p className="font-body text-sm text-gray-600 leading-relaxed">{book.applyToSales}</p>
             </div>
+
+            {(() => {
+              const href = book.amazonUrl || `https://www.amazon.com/s?k=${encodeURIComponent([book.title, book.author].filter(Boolean).join(' '))}`;
+              return (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border-2 border-gray-200 font-body text-sm font-semibold text-gray-600 hover:border-accent-300 hover:text-accent-600 transition-colors"
+                >
+                  <FiExternalLink size={14} />
+                  {book.amazonUrl ? 'View on Amazon' : 'Search on Amazon'}
+                </a>
+              );
+            })()}
           </div>
         </motion.div>
       </motion.div>

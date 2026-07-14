@@ -1,6 +1,98 @@
 import { useState } from 'react';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiSearch, FiX } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
+
+function BookSearch({ onSelect }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  const doSearch = async () => {
+    if (!query.trim()) return;
+    setSearching(true);
+    setSearched(false);
+    try {
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=key,title,author_name,first_publish_year,cover_i,isbn`;
+      const r = await fetch(url);
+      const data = await r.json();
+      setResults(data.docs ?? []);
+    } catch {
+      setResults([]);
+    } finally {
+      setSearching(false);
+      setSearched(true);
+    }
+  };
+
+  return (
+    <div className="bg-blush-50 border border-blush-100 rounded-2xl p-4 space-y-3">
+      <p className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest">Find Book</p>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } }}
+            placeholder="Search by title or author..."
+            className="admin-input pl-9"
+          />
+        </div>
+        <button onClick={doSearch} disabled={searching} className="btn-primary text-xs px-4 shrink-0 disabled:opacity-60">
+          {searching ? '…' : 'Search'}
+        </button>
+      </div>
+
+      {results.length > 0 && (
+        <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+          {results.map(r => {
+            const thumbUrl = r.cover_i ? `https://covers.openlibrary.org/b/id/${r.cover_i}-S.jpg` : null;
+            const coverImageUrl = r.cover_i ? `https://covers.openlibrary.org/b/id/${r.cover_i}-M.jpg` : '';
+            const isbn = r.isbn?.find(i => i.length === 13) ?? r.isbn?.[0] ?? '';
+            const amazonUrl = isbn
+              ? `https://www.amazon.com/dp/${isbn}`
+              : `https://www.amazon.com/s?k=${encodeURIComponent(`${r.title} ${r.author_name?.[0] ?? ''}`)}`;
+            return (
+              <button
+                key={r.key}
+                onClick={() => {
+                  onSelect({
+                    title: r.title ?? '',
+                    author: r.author_name?.[0] ?? '',
+                    year: r.first_publish_year ?? new Date().getFullYear(),
+                    coverImageUrl,
+                    amazonUrl,
+                  });
+                  setResults([]);
+                  setQuery('');
+                }}
+                className="w-full text-left flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 hover:border-blush-200 hover:shadow-sm transition-all group"
+              >
+                {thumbUrl ? (
+                  <img src={thumbUrl} alt={r.title} className="w-8 h-12 object-cover rounded shadow-sm shrink-0" />
+                ) : (
+                  <div className="w-8 h-12 bg-gradient-to-b from-blush-200 to-blush-400 rounded shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-body text-sm font-semibold text-gray-800 truncate group-hover:text-blush-600 transition-colors">{r.title}</p>
+                  <p className="font-body text-xs text-gray-400 truncate">
+                    {r.author_name?.[0] ?? 'Unknown author'}{r.first_publish_year ? ` · ${r.first_publish_year}` : ''}
+                  </p>
+                </div>
+                <span className="font-body text-xs text-blush-400 shrink-0">Select →</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {searched && results.length === 0 && !searching && (
+        <p className="font-body text-xs text-gray-400">No results — try a different title or author.</p>
+      )}
+    </div>
+  );
+}
 
 const COVER_COLORS = [
   'from-blush-400 to-blush-600', 'from-lavender-300 to-lavender-500',
@@ -19,6 +111,7 @@ const blank = () => ({
   id: Date.now(), title: '', author: '', year: new Date().getFullYear(),
   rating: 5, genre: '', hidden: false, synopsis: '', applyToSales: '',
   coverColor: COVER_COLORS[0], tagColor: TAG_COLORS[0],
+  coverImageUrl: '', amazonUrl: '',
   takeaways: [blankTakeaway()],
 });
 
@@ -32,6 +125,14 @@ export default function EditBooks({ onToast }) {
   const openEdit = (idx) => { setEditIdx(idx); setEditBook({ ...items[idx], takeaways: items[idx].takeaways.map(t => ({ ...t })) }); };
   const applyEdit = () => { setItems(p => p.map((b, i) => i === editIdx ? editBook : b)); setEditIdx(null); };
   const set = (k, v) => setEditBook(b => ({ ...b, [k]: v }));
+  const applyBookSearch = (fields) => setEditBook(b => ({
+    ...b,
+    title: fields.title || b.title,
+    author: fields.author || b.author,
+    year: fields.year || b.year,
+    coverImageUrl: fields.coverImageUrl ?? b.coverImageUrl,
+    amazonUrl: fields.amazonUrl ?? b.amazonUrl,
+  }));
   const setTakeaway = (ti, k, v) => setEditBook(b => ({ ...b, takeaways: b.takeaways.map((t, i) => i === ti ? { ...t, [k]: v } : t) }));
   const addTakeaway = () => setEditBook(b => ({ ...b, takeaways: [...b.takeaways, blankTakeaway()] }));
   const removeTakeaway = (ti) => setEditBook(b => ({ ...b, takeaways: b.takeaways.filter((_, i) => i !== ti) }));
@@ -59,6 +160,31 @@ export default function EditBooks({ onToast }) {
           <div key={book.id}>
             {editIdx === idx ? (
               <div className="admin-card border-2 border-blush-300 space-y-4">
+                {/* Book search */}
+                <BookSearch onSelect={applyBookSearch} />
+
+                {/* Cover image preview + controls */}
+                {editBook.coverImageUrl ? (
+                  <div className="flex items-center gap-4 bg-gray-50 rounded-xl p-3">
+                    <img
+                      src={editBook.coverImageUrl}
+                      alt="Cover"
+                      className="w-14 h-20 object-cover rounded-lg shadow-sm shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-body text-xs font-semibold text-gray-700 mb-0.5">Cover image found</p>
+                      <p className="font-body text-[10px] text-gray-400 truncate">{editBook.coverImageUrl}</p>
+                    </div>
+                    <button
+                      onClick={() => set('coverImageUrl', '')}
+                      className="shrink-0 w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors"
+                      title="Remove cover image"
+                    >
+                      <FiX size={12} />
+                    </button>
+                  </div>
+                ) : null}
+
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div className="sm:col-span-2">
                     <label className="admin-label">Title</label>
@@ -102,6 +228,16 @@ export default function EditBooks({ onToast }) {
                   <div className="sm:col-span-2">
                     <label className="admin-label">How I Apply This</label>
                     <textarea rows={3} className="admin-input resize-none" value={editBook.applyToSales} onChange={e => set('applyToSales', e.target.value)} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="admin-label">Amazon Link <span className="text-gray-300 font-normal">(auto-filled by search, or paste manually)</span></label>
+                    <input
+                      type="url"
+                      value={editBook.amazonUrl ?? ''}
+                      onChange={e => set('amazonUrl', e.target.value)}
+                      className="admin-input"
+                      placeholder="https://www.amazon.com/dp/..."
+                    />
                   </div>
                 </div>
 
