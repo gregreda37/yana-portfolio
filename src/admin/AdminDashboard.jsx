@@ -20,6 +20,7 @@ import {
   FiMessageSquare, FiEdit, FiBook, FiLogOut, FiExternalLink, FiSettings, FiInbox, FiHome, FiCalendar, FiVideo,
 } from 'react-icons/fi';
 import YanaAssistant from '../components/YanaAssistant';
+import { logger } from '../firebase/logger';
 
 const NAV = [
   { key: 'profile',      label: 'Profile',           icon: FiUser },
@@ -86,6 +87,7 @@ export default function AdminDashboard() {
     setSidebarOpen(false);
     if (key === 'inbox') setInboxCount(0);
     if (yanaOpen) setYanaAnalysisKey(k => k + 1);
+    logger.event('admin.navigate', { section: key });
   };
 
   // Called by YanaAssistant when user clicks Apply on a suggestion

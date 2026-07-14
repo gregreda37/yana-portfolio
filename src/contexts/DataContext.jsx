@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getSection, saveSection as persistSection } from '../firebase/db';
 import { useAuth } from './AuthContext';
+import { logger } from '../firebase/logger';
 
 export const DEFAULTS = {
   profile: {
@@ -51,6 +52,7 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
     setFirestoreError(false);
 
     async function load() {
+      const t0 = performance.now();
       try {
         // ── 1. Read all sections ──────────────────────────────────────────
         const results = await Promise.all(SECTIONS.map(s => getSection(uid, s)));
@@ -84,9 +86,13 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
             if (!cancelled) setData(DEFAULTS);
           }
         }
-        if (!cancelled) setFirestoreLoaded(true);
+        if (!cancelled) {
+          logger.perf('firestore.load', performance.now() - t0, { uid, readOnly });
+          setFirestoreLoaded(true);
+        }
       } catch (e) {
         console.error('Failed to load portfolio data from Firestore:', e.message);
+        logger.error('firestore.load_failed', { message: e.message, uid });
         if (!cancelled) {
           setFirestoreError(true);
           setFirestoreLoaded(true); // unblock the spinner so the page renders
@@ -99,8 +105,16 @@ export function DataProvider({ children, uid: uidProp, readOnly = false }) {
 
   const saveSection = useCallback(async (section, sectionData) => {
     if (!uid || readOnly) return;
-    await persistSection(uid, section, sectionData);
-    setData(prev => ({ ...prev, [section]: sectionData }));
+    const t0 = performance.now();
+    try {
+      await persistSection(uid, section, sectionData);
+      logger.perf('firestore.save', performance.now() - t0, { section });
+      logger.event('admin.save', { section });
+      setData(prev => ({ ...prev, [section]: sectionData }));
+    } catch (e) {
+      logger.error('firestore.save_failed', { section, message: e.message });
+      throw e;
+    }
   }, [uid, readOnly]);
 
   return (

@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { getUsername } from '../firebase/db';
+import { setLoggerUid, logger } from '../firebase/logger';
 
 const AuthContext = createContext(null);
 const googleProvider = new GoogleAuthProvider();
@@ -21,10 +22,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
+      setLoggerUid(u?.uid ?? null);
       if (u) {
         try {
           const uname = await getUsername(u.uid);
           setUsername(uname);
+          logger.event('auth.session_start', { email: u.email, provider: u.providerData?.[0]?.providerId });
         } catch {
           setUsername(null);
         }
@@ -39,7 +42,7 @@ export function AuthProvider({ children }) {
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
   const signup = (email, password) => createUserWithEmailAndPassword(auth, email, password);
   const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
-  const logout = () => signOut(auth);
+  const logout = () => { logger.event('auth.logout'); return signOut(auth); };
   const updateUsername = useCallback((uname) => setUsername(uname), []);
 
   return (
