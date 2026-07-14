@@ -49,7 +49,7 @@ export default function BookModal({ book, onClose }) {
               {book.coverImageUrl && (
                 <div className="w-28 shrink-0 relative overflow-hidden">
                   <img
-                    src={book.coverImageUrl}
+                    src={book.coverImageUrl.replace('-M.jpg', '-L.jpg')}
                     alt={book.title}
                     className="absolute inset-0 w-full h-full object-cover"
                   />

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FiEye, FiEyeOff, FiSearch, FiX } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
 
@@ -6,49 +6,66 @@ function BookSearch({ onSelect }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [noResults, setNoResults] = useState(false);
+  const abortRef = useRef(null);
 
-  const doSearch = async () => {
-    if (!query.trim()) return;
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) { setResults([]); setNoResults(false); return; }
+
     setSearching(true);
-    setSearched(false);
-    try {
-      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=key,title,author_name,first_publish_year,cover_i,isbn`;
-      const r = await fetch(url);
-      const data = await r.json();
-      setResults(data.docs ?? []);
-    } catch {
-      setResults([]);
-    } finally {
-      setSearching(false);
-      setSearched(true);
-    }
+    setNoResults(false);
+
+    // Cancel any in-flight request
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    const timer = setTimeout(async () => {
+      try {
+        const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=7&fields=key,title,author_name,first_publish_year,cover_i,isbn`;
+        const r = await fetch(url, { signal: abortRef.current.signal });
+        const data = await r.json();
+        const docs = data.docs ?? [];
+        setResults(docs);
+        setNoResults(docs.length === 0);
+      } catch (e) {
+        if (e.name !== 'AbortError') { setResults([]); setNoResults(true); }
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+
+    return () => { clearTimeout(timer); abortRef.current?.abort(); };
+  }, [query]);
+
+  const handleSelect = (fields) => {
+    onSelect(fields);
+    setQuery('');
+    setResults([]);
+    setNoResults(false);
   };
 
   return (
     <div className="bg-blush-50 border border-blush-100 rounded-2xl p-4 space-y-3">
       <p className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest">Find Book</p>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } }}
-            placeholder="Search by title or author..."
-            className="admin-input pl-9"
-          />
-        </div>
-        <button onClick={doSearch} disabled={searching} className="btn-primary text-xs px-4 shrink-0 disabled:opacity-60">
-          {searching ? '…' : 'Search'}
-        </button>
+      <div className="relative">
+        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
+        {searching && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-blush-300 border-t-transparent rounded-full animate-spin" />
+        )}
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search by title or author..."
+          className="admin-input pl-9 pr-8"
+        />
       </div>
 
       {results.length > 0 && (
         <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
           {results.map(r => {
             const thumbUrl = r.cover_i ? `https://covers.openlibrary.org/b/id/${r.cover_i}-S.jpg` : null;
-            const coverImageUrl = r.cover_i ? `https://covers.openlibrary.org/b/id/${r.cover_i}-M.jpg` : '';
+            const coverImageUrl = r.cover_i ? `https://covers.openlibrary.org/b/id/${r.cover_i}-L.jpg` : '';
             const isbn = r.isbn?.find(i => i.length === 13) ?? r.isbn?.[0] ?? '';
             const amazonUrl = isbn
               ? `https://www.amazon.com/dp/${isbn}`
@@ -56,17 +73,13 @@ function BookSearch({ onSelect }) {
             return (
               <button
                 key={r.key}
-                onClick={() => {
-                  onSelect({
-                    title: r.title ?? '',
-                    author: r.author_name?.[0] ?? '',
-                    year: r.first_publish_year ?? new Date().getFullYear(),
-                    coverImageUrl,
-                    amazonUrl,
-                  });
-                  setResults([]);
-                  setQuery('');
-                }}
+                onClick={() => handleSelect({
+                  title: r.title ?? '',
+                  author: r.author_name?.[0] ?? '',
+                  year: r.first_publish_year ?? new Date().getFullYear(),
+                  coverImageUrl,
+                  amazonUrl,
+                })}
                 className="w-full text-left flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100 hover:border-blush-200 hover:shadow-sm transition-all group"
               >
                 {thumbUrl ? (
@@ -87,7 +100,7 @@ function BookSearch({ onSelect }) {
         </div>
       )}
 
-      {searched && results.length === 0 && !searching && (
+      {noResults && !searching && (
         <p className="font-body text-xs text-gray-400">No results — try a different title or author.</p>
       )}
     </div>
@@ -104,7 +117,8 @@ const TAG_COLORS = [
 ];
 const GENRES = [
   'Business', 'Sales Strategy', 'Leadership', 'Negotiation', 'Productivity',
-  'Personal Development', 'Biography', 'Self-Help', 'Fiction', 'Psychology', 'Other',
+  'Personal Development', 'Biography', 'Self-Help', 'Fiction', 'Psychology',
+  'Health / Science', 'Other',
 ];
 const blankTakeaway = () => ({ heading: '', body: '' });
 const blank = () => ({

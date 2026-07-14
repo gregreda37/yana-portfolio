@@ -237,7 +237,7 @@ export default function Blog() {
                           <>
                             {/* Real cover image */}
                             <img
-                              src={book.coverImageUrl}
+                              src={book.coverImageUrl.replace('-M.jpg', '-L.jpg')}
                               alt={book.title}
                               className="absolute inset-0 w-full h-full object-cover"
                               style={{ objectPosition: 'center 10%' }}
@@ -329,7 +329,7 @@ export default function Blog() {
                         {book.coverImageUrl ? (
                           <div className="h-28 overflow-hidden relative">
                             <img
-                              src={book.coverImageUrl}
+                              src={book.coverImageUrl.replace('-M.jpg', '-L.jpg')}
                               alt={book.title}
                               className="w-full h-full object-cover object-top"
                             />
