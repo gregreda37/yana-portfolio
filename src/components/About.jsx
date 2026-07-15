@@ -74,7 +74,7 @@ export default function About() {
             )}
 
             {/* Skills */}
-            <div className="flex flex-wrap gap-2 mb-8">
+            <div className="flex flex-wrap gap-2 mb-8 max-h-[106px] overflow-y-auto overflow-x-hidden pr-1">
               {(experience.skills ?? []).map(skill => (
                 <span
                   key={skill}
