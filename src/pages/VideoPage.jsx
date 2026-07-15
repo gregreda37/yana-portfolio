@@ -62,8 +62,8 @@ function VideoContent() {
 
   if (!firestoreLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-accent-50">
-        <div className="w-8 h-8 border-2 border-accent-400 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -361,8 +361,8 @@ export default function VideoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-blush-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blush-400 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

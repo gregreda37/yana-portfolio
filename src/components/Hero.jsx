@@ -4,6 +4,8 @@ import { useParams } from 'react-router-dom';
 import logoUrl from '../assets/yvb-logo-original.svg';
 import { useData } from '../contexts/DataContext';
 
+const BIO_LIMIT = 160;
+
 export default function Hero() {
   const { profile, video } = useData();
   const { username } = useParams();
@@ -16,7 +18,7 @@ export default function Hero() {
       {/* Decorative blobs */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-accent-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse" />
       <div className="absolute bottom-20 right-10 w-80 h-80 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
 
       <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
 
@@ -81,7 +83,10 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 1.0 }}
             className="font-body text-lg md:text-xl text-gray-500 leading-relaxed mb-10 max-w-xl mx-auto"
           >
-            {profile.bio1}
+            {profile.bio1.length > BIO_LIMIT
+              ? <>{profile.bio1.slice(0, BIO_LIMIT).trimEnd()}… <a href="#about" className="text-accent-500 font-semibold hover:text-accent-600 transition-colors whitespace-nowrap">Learn more</a></>
+              : profile.bio1
+            }
           </motion.p>
         )}
 

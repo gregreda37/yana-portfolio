@@ -68,7 +68,7 @@
 /* ── Base ───────────────────────────────────────────────────────────────── */
 @layer base {
   html { scroll-behavior: smooth; }
-  body { @apply font-body text-gray-700 bg-blush-50; }
+  body { @apply font-body text-gray-700 bg-gray-50; }
   h1, h2, h3, h4 { @apply font-display; }
 }
 
