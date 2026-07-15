@@ -6,8 +6,8 @@ export default function ProtectedRoute({ children, requireUsername = false }) {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-blush-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blush-400 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

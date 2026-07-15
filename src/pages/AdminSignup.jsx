@@ -1,6 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { logger } from '../firebase/logger';
+
+function googleErrorMessage(code) {
+  switch (code) {
+    case 'auth/popup-blocked':
+      return 'Your browser blocked the sign-in popup. Please allow popups for this site and try again.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with this email. Please sign in with your email and password instead.';
+    case 'auth/network-request-failed':
+      return 'Network error — check your connection and try again.';
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please wait a moment and try again.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact support.';
+    default:
+      return 'Google sign-in failed. Please try again.';
+  }
+}
 
 function GoogleIcon() {
   return (
@@ -56,8 +74,13 @@ export default function AdminSignup() {
       await loginWithGoogle();
       navigate('/admin/setup');
     } catch (err) {
-      if (err.code !== 'auth/popup-closed-by-user') {
-        setError('Google sign-in failed. Please try again.');
+      const code = err?.code ?? '';
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        // User dismissed — no error shown
+      } else {
+        const msg = googleErrorMessage(code);
+        setError(msg);
+        logger.error('auth.google_signup_failed', { code, message: err?.message });
       }
     } finally {
       setGoogleLoading(false);
