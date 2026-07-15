@@ -43,7 +43,7 @@ export default function BookModal({ book, onClose }) {
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className={`bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'} shrink-0 relative`}>
+          <div className={`bg-gradient-to-r ${(book.coverColor ?? 'from-gray-400 to-gray-600').replace(/\bblush\b/g, 'accent')} shrink-0 relative`}>
             <div className="flex items-stretch">
               {/* Real cover image */}
               {book.coverImageUrl && (

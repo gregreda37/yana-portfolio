@@ -8,7 +8,7 @@ import { FiClock, FiArrowRight, FiCalendar, FiBookOpen } from 'react-icons/fi';
 const PALETTE = [
   'bg-accent-100 text-accent-600',
   'bg-lavender-100 text-purple-600',
-  'bg-pink-100 text-pink-600',
+  'bg-teal-100 text-teal-600',
   'bg-rose-100 text-rose-600',
   'bg-sky-100 text-sky-600',
   'bg-emerald-100 text-emerald-600',
@@ -253,7 +253,7 @@ export default function Blog() {
                         ) : (
                           <>
                             {/* Spine gradient */}
-                            <div className={`absolute inset-0 bg-gradient-to-b ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
+                            <div className={`absolute inset-0 bg-gradient-to-b ${(book.coverColor ?? 'from-gray-400 to-gray-600').replace(/\bblush\b/g, 'accent')}`} />
                             {/* Binding crease & highlight */}
                             <div className="absolute left-0 top-0 w-3.5 h-full bg-white/25" />
                             <div className="absolute left-3.5 top-0 w-px h-full bg-white/20" />
@@ -336,12 +336,12 @@ export default function Blog() {
                             <div className="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent" />
                           </div>
                         ) : (
-                          <div className={`h-1.5 bg-gradient-to-r ${book.coverColor ?? 'from-gray-400 to-gray-600'}`} />
+                          <div className={`h-1.5 bg-gradient-to-r ${(book.coverColor ?? 'from-gray-400 to-gray-600').replace(/\bblush\b/g, 'accent')}`} />
                         )}
                         <div className="p-4">
                           <div className="flex items-center justify-between mb-2">
                             {book.genre ? (
-                              <span className={`font-body text-[10px] font-semibold px-2 py-0.5 rounded-full ${book.tagColor ?? 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`font-body text-[10px] font-semibold px-2 py-0.5 rounded-full ${(book.tagColor ?? 'bg-gray-100 text-gray-500').replace(/\bblush\b/g, 'accent')}`}>
                                 {book.genre}
                               </span>
                             ) : <span />}

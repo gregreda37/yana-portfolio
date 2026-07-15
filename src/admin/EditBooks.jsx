@@ -108,12 +108,12 @@ function BookSearch({ onSelect }) {
 }
 
 const COVER_COLORS = [
-  'from-blush-400 to-blush-600', 'from-lavender-300 to-lavender-500',
-  'from-pink-300 to-rose-400', 'from-purple-300 to-blush-400', 'from-rose-300 to-blush-500',
+  'from-accent-400 to-accent-600', 'from-lavender-300 to-lavender-500',
+  'from-teal-400 to-teal-600', 'from-purple-300 to-purple-500', 'from-rose-300 to-rose-500',
 ];
 const TAG_COLORS = [
-  'bg-blush-100 text-blush-600', 'bg-lavender-100 text-purple-600',
-  'bg-pink-100 text-pink-600', 'bg-rose-100 text-rose-600', 'bg-purple-100 text-purple-600',
+  'bg-accent-100 text-accent-600', 'bg-lavender-100 text-purple-600',
+  'bg-teal-100 text-teal-600', 'bg-rose-100 text-rose-600', 'bg-purple-100 text-purple-600',
 ];
 const GENRES = [
   'Business', 'Sales Strategy', 'Leadership', 'Negotiation', 'Productivity',

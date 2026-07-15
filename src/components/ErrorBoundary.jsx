@@ -23,7 +23,7 @@ export default class ErrorBoundary extends Component {
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-blush-50">
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
         <div className="text-center max-w-sm">
           <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">⚠️</span>

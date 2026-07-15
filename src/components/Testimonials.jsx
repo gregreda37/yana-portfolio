@@ -61,7 +61,7 @@ export default function Testimonials() {
               </motion.p>
             </AnimatePresence>
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 ${active.color} rounded-full flex items-center justify-center`}>
+              <div className={`w-12 h-12 ${(active.color ?? '').replace(/\bblush\b/g, 'accent')} rounded-full flex items-center justify-center`}>
                 <span className="font-display font-medium text-gray-700">{active.initials}</span>
               </div>
               <AnimatePresence mode="wait">
@@ -125,7 +125,7 @@ export default function Testimonials() {
                 activeIdx === i ? 'ring-2 ring-accent-300' : ''
               }`}
             >
-              <div className={`w-8 h-8 ${t.color} rounded-full flex items-center justify-center mb-3`}>
+              <div className={`w-8 h-8 ${(t.color ?? '').replace(/\bblush\b/g, 'accent')} rounded-full flex items-center justify-center mb-3`}>
                 <span className="font-display text-sm text-gray-700">{t.initials}</span>
               </div>
               <p className="font-body font-semibold text-sm text-gray-700">{t.name}</p>

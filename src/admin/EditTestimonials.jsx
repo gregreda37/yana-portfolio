@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 
 const COLOR_OPTIONS = [
-  'bg-lavender-200', 'bg-blush-200', 'bg-pink-200', 'bg-purple-100', 'bg-rose-100',
+  'bg-lavender-200', 'bg-teal-200', 'bg-sky-200', 'bg-purple-100', 'bg-emerald-100',
 ];
-const blank = () => ({ id: Date.now(), quote: '', name: '', title: '', company: '', initials: '', color: 'bg-blush-200' });
+const blank = () => ({ id: Date.now(), quote: '', name: '', title: '', company: '', initials: '', color: 'bg-lavender-200' });
 
 export default function EditTestimonials({ onToast }) {
   const { testimonials, saveSection } = useData();
