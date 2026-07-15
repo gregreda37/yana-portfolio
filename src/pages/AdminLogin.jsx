@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -41,7 +41,7 @@ const PERKS = [
 ];
 
 export default function AdminLogin() {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, user, authLoading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,13 +49,18 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  // Navigate only after React has processed the auth state — avoids race condition
+  // where navigate('/admin') fires before setUser() is flushed by React.
+  useEffect(() => {
+    if (!authLoading && user) navigate('/admin');
+  }, [user, authLoading, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/admin');
     } catch {
       setError('Invalid email or password.');
     } finally {
@@ -68,7 +73,6 @@ export default function AdminLogin() {
     setGoogleLoading(true);
     try {
       await loginWithGoogle();
-      navigate('/admin');
     } catch (err) {
       const code = err?.code ?? '';
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {

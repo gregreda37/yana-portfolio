@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { logger } from '../firebase/logger';
@@ -32,7 +32,7 @@ function GoogleIcon() {
 }
 
 export default function AdminSignup() {
-  const { signup, loginWithGoogle } = useAuth();
+  const { signup, loginWithGoogle, user, authLoading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +40,12 @@ export default function AdminSignup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Navigate only after React has processed the auth state — avoids race condition
+  // where navigate() fires before setUser() is flushed by React.
+  useEffect(() => {
+    if (!authLoading && user) navigate('/admin/setup');
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,7 +61,6 @@ export default function AdminSignup() {
     setLoading(true);
     try {
       await signup(email, password);
-      navigate('/admin/setup');
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists.');
@@ -72,7 +77,6 @@ export default function AdminSignup() {
     setGoogleLoading(true);
     try {
       await loginWithGoogle();
-      navigate('/admin/setup');
     } catch (err) {
       const code = err?.code ?? '';
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
