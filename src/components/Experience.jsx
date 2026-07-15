@@ -70,7 +70,7 @@ function EduModal({ entry, onClose }) {
               ) : (
                 <>
                   <p className="font-body text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Relevant Courses</p>
-                  <ul className="flex flex-wrap gap-2">
+                  <ul className="flex flex-wrap gap-2 max-h-[144px] overflow-y-auto pr-1">
                     {courses.map((c, i) => (
                       <li key={i} className="font-body text-xs font-medium px-3 py-1.5 bg-accent-50 text-accent-700 border border-accent-100 rounded-full">
                         {c}
