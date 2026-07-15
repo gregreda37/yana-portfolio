@@ -96,6 +96,40 @@ Keep suggestions to 3–4 max. Provide ready-to-use text for newValue whenever p
   return parsed;
 }
 
+// ── Single-field refine call ──────────────────────────────────────────────────
+export async function refineField(fieldLabel, currentValue, instruction) {
+  if (!isConfigured()) throw new Error('AI assistant is not configured. Add your Azure OpenAI keys to .env.local.');
+
+  const res = await fetch(azureEndpoint(), {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      temperature: 0.75,
+      messages: [
+        { role: 'system', content: SYSTEM },
+        {
+          role: 'user',
+          content: `Improve this specific portfolio field for a high-performing sales professional.
+
+Field: "${fieldLabel}"
+Current text: "${currentValue || '(empty)'}"
+${instruction ? `Instruction: ${instruction}` : 'Make it more compelling, specific, and professional.'}
+
+Return ONLY the improved text — no explanation, no quotes, no preamble. Just the improved text itself.`,
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message ?? `AI error ${res.status}`);
+  }
+
+  const result = await res.json();
+  return (result.choices?.[0]?.message?.content ?? '').trim();
+}
+
 // ── Streaming follow-up chat ──────────────────────────────────────────────────
 export async function streamChat({ messages, sectionLabel, sectionData, onChunk, onComplete, onError }) {
   if (!isConfigured()) { onError?.('Azure OpenAI is not configured.'); return; }
