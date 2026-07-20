@@ -23,7 +23,7 @@ function categoryColor(category, categories) {
 
 export default function Blog() {
   const { blog, books: booksData } = useData();
-  const blogPosts = blog.posts ?? [];
+  const blogPosts = (blog.posts ?? []).filter(p => !p.hidden);
   const recentReads = (booksData.items ?? []).filter(b => !b.hidden);
   const sectionLabel = blog.sectionLabel || 'Insights';
   const sectionTitle = blog.sectionTitle || 'Sales insights & strategy.';
@@ -112,26 +112,34 @@ export default function Blog() {
           >
             <button
               onClick={() => setSelectedPost(filteredPosts[0])}
-              className="w-full text-left group bg-gradient-to-br from-accent-50 to-accent-100 border border-accent-100 rounded-3xl p-8 md:p-10 hover:shadow-md transition-shadow duration-300"
+              className="w-full text-left group bg-gradient-to-br from-accent-50 to-accent-100 border border-accent-100 rounded-3xl overflow-hidden hover:shadow-md transition-shadow duration-300"
             >
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className={`font-body text-xs font-semibold px-3 py-1 rounded-full ${categoryColor(filteredPosts[0].category, categories)}`}>
-                  {filteredPosts[0].category}
-                </span>
-                <span className="font-body text-xs text-gray-400 flex items-center gap-1">
-                  <FiCalendar size={11} /> {filteredPosts[0].date}
-                </span>
-                <span className="font-body text-xs text-gray-400 flex items-center gap-1">
-                  <FiClock size={11} /> {filteredPosts[0].readTime}
+              {filteredPosts[0].images?.[0] && (
+                <div className="w-full h-52 md:h-64 overflow-hidden relative">
+                  <img src={filteredPosts[0].images[0]} alt={filteredPosts[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-accent-50/80 to-transparent" />
+                </div>
+              )}
+              <div className="p-8 md:p-10">
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <span className={`font-body text-xs font-semibold px-3 py-1 rounded-full ${categoryColor(filteredPosts[0].category, categories)}`}>
+                    {filteredPosts[0].category}
+                  </span>
+                  <span className="font-body text-xs text-gray-400 flex items-center gap-1">
+                    <FiCalendar size={11} /> {filteredPosts[0].date}
+                  </span>
+                  <span className="font-body text-xs text-gray-400 flex items-center gap-1">
+                    <FiClock size={11} /> {filteredPosts[0].readTime}
+                  </span>
+                </div>
+                <h3 className="font-display text-3xl md:text-4xl font-light text-gray-800 mb-3 group-hover:text-accent-600 transition-colors">
+                  {filteredPosts[0].title}
+                </h3>
+                <p className="font-body text-gray-500 leading-relaxed max-w-2xl mb-6">{filteredPosts[0].excerpt}</p>
+                <span className="inline-flex items-center gap-2 font-body text-sm font-semibold text-accent-500 group-hover:gap-3 transition-all">
+                  Read article <FiArrowRight size={14} />
                 </span>
               </div>
-              <h3 className="font-display text-3xl md:text-4xl font-light text-gray-800 mb-3 group-hover:text-accent-600 transition-colors">
-                {filteredPosts[0].title}
-              </h3>
-              <p className="font-body text-gray-500 leading-relaxed max-w-2xl mb-6">{filteredPosts[0].excerpt}</p>
-              <span className="inline-flex items-center gap-2 font-body text-sm font-semibold text-accent-500 group-hover:gap-3 transition-all">
-                Read article <FiArrowRight size={14} />
-              </span>
             </button>
           </motion.div>
         )}
@@ -148,25 +156,32 @@ export default function Blog() {
               >
                 <button
                   onClick={() => setSelectedPost(post)}
-                  className="w-full text-left group card h-full flex flex-col"
+                  className="w-full text-left group card h-full flex flex-col p-0 overflow-hidden"
                 >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className={`font-body text-xs font-semibold px-2.5 py-1 rounded-full ${categoryColor(post.category, categories)}`}>
-                      {post.category}
-                    </span>
-                  </div>
-                  <h3 className="font-display text-xl font-medium text-gray-800 mb-2 leading-snug group-hover:text-accent-600 transition-colors flex-1">
-                    {post.title}
-                  </h3>
-                  <p className="font-body text-sm text-gray-400 leading-relaxed mb-4 line-clamp-3">
-                    {post.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <div className="flex items-center gap-3 text-xs text-gray-400 font-body">
-                      <span className="flex items-center gap-1"><FiCalendar size={10} /> {post.date}</span>
-                      <span className="flex items-center gap-1"><FiClock size={10} /> {post.readTime}</span>
+                  {post.images?.[0] && (
+                    <div className="w-full h-36 overflow-hidden shrink-0">
+                      <img src={post.images[0]} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
-                    <FiArrowRight className="text-accent-300 group-hover:text-accent-500 group-hover:translate-x-1 transition-all" size={14} />
+                  )}
+                  <div className="flex flex-col flex-1 p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className={`font-body text-xs font-semibold px-2.5 py-1 rounded-full ${categoryColor(post.category, categories)}`}>
+                        {post.category}
+                      </span>
+                    </div>
+                    <h3 className="font-display text-xl font-medium text-gray-800 mb-2 leading-snug group-hover:text-accent-600 transition-colors flex-1">
+                      {post.title}
+                    </h3>
+                    <p className="font-body text-sm text-gray-400 leading-relaxed mb-4 line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex items-center gap-3 text-xs text-gray-400 font-body">
+                        <span className="flex items-center gap-1"><FiCalendar size={10} /> {post.date}</span>
+                        <span className="flex items-center gap-1"><FiClock size={10} /> {post.readTime}</span>
+                      </div>
+                      <FiArrowRight className="text-accent-300 group-hover:text-accent-500 group-hover:translate-x-1 transition-all" size={14} />
+                    </div>
                   </div>
                 </button>
               </motion.div>

@@ -1,8 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiTag, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiX, FiTag, FiClock, FiCalendar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 export default function BlogModal({ post, onClose }) {
+  const [imgIdx, setImgIdx] = useState(0);
+  const images = post?.images ?? [];
+
+  useEffect(() => { setImgIdx(0); }, [post]);
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -54,6 +59,44 @@ export default function BlogModal({ post, onClose }) {
               </button>
             </div>
           </div>
+
+          {/* Image gallery — only shown when images exist */}
+          {images.length > 0 && (
+            <div className="relative shrink-0">
+              <div className="relative overflow-hidden bg-gray-100" style={{ height: 260 }}>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.img
+                    key={imgIdx}
+                    src={images[imgIdx]}
+                    alt={`Photo ${imgIdx + 1}`}
+                    initial={{ opacity: 0, x: 40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -40 }}
+                    transition={{ duration: 0.25 }}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                </AnimatePresence>
+                {images.length > 1 && (
+                  <>
+                    <button onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
+                      <FiChevronLeft size={16} />
+                    </button>
+                    <button onClick={() => setImgIdx(i => (i + 1) % images.length)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
+                      <FiChevronRight size={16} />
+                    </button>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {images.map((_, i) => (
+                        <button key={i} onClick={() => setImgIdx(i)}
+                          className={`w-1.5 h-1.5 rounded-full transition-colors ${i === imgIdx ? 'bg-white' : 'bg-white/40'}`} />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Body */}
           <div className="px-8 py-6 overflow-y-auto">

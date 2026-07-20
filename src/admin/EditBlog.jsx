@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { FiPlus, FiX } from 'react-icons/fi';
+import { useState, useRef } from 'react';
+import { FiPlus, FiX, FiEye, FiEyeOff, FiUpload, FiImage } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
+import { uploadAsset } from '../firebase/storage';
 import { YanaField } from './YanaField';
 
 const DEFAULT_CATEGORIES = ['Prospecting', 'Sales Strategy', 'Relationship Building', 'Objection Handling', 'Leadership', 'Productivity'];
@@ -8,10 +10,12 @@ const DEFAULT_CATEGORIES = ['Prospecting', 'Sales Strategy', 'Relationship Build
 const blank = (categories) => ({
   id: Date.now(), slug: '', title: '', category: categories[0] ?? 'General',
   date: '', readTime: '5 min read', excerpt: '', body: '', tags: [],
+  hidden: false, images: [],
 });
 
 export default function EditBlog({ onToast }) {
   const { blog, saveSection } = useData();
+  const { user } = useAuth();
 
   const [sectionLabel, setSectionLabel] = useState(blog.sectionLabel ?? 'Insights');
   const [sectionTitle, setSectionTitle] = useState(blog.sectionTitle ?? 'Sales insights & strategy.');
@@ -26,6 +30,8 @@ export default function EditBlog({ onToast }) {
   const [editPost, setEditPost] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveCount, setSaveCount] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const addCategory = () => {
     const name = newCategory.trim();
@@ -38,10 +44,28 @@ export default function EditBlog({ onToast }) {
     setCategories(prev => prev.filter(c => c !== cat));
   };
 
-  const openEdit = (idx) => { setEditIdx(idx); setEditPost({ ...posts[idx] }); };
+  const openEdit = (idx) => { setEditIdx(idx); setEditPost({ ...posts[idx], images: posts[idx].images ?? [] }); };
   const applyEdit = () => { setPosts(p => p.map((post, i) => i === editIdx ? editPost : post)); setEditIdx(null); };
   const set = (k, v) => setEditPost(p => ({ ...p, [k]: v }));
   const addPost = () => { const b = blank(categories); setPosts(p => [...p, b]); setEditIdx(posts.length); setEditPost(b); };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const urls = await Promise.all(files.map(f => uploadAsset(user.uid, f, 'blog')));
+      set('images', [...(editPost.images ?? []), ...urls]);
+      onToast(`${urls.length} image${urls.length > 1 ? 's' : ''} uploaded!`);
+    } catch {
+      onToast('Upload failed — please try again.');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeImage = (i) => set('images', (editPost.images ?? []).filter((_, idx) => idx !== i));
 
   const handleSave = async () => {
     setSaving(true);
@@ -180,19 +204,80 @@ export default function EditBlog({ onToast }) {
                     <YanaField label="Body" rows={12} value={editPost.body} onChange={e => set('body', e.target.value)} yanaField={`blog-body-${editIdx}`} yana saveCount={saveCount} />
                   </div>
                 </div>
+
+                {/* ── Media Photos (optional) ─────────────────────────── */}
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="font-body text-xs font-semibold text-gray-500 uppercase tracking-widest">Media Photos <span className="text-gray-300 font-normal normal-case tracking-normal">— optional</span></p>
+                      <p className="font-body text-[10px] text-gray-400 mt-0.5">Displayed as a gallery in the post modal. Up to 8 images.</p>
+                    </div>
+                    <label className={`inline-flex items-center gap-1.5 admin-btn-sm cursor-pointer ${uploading ? 'opacity-60 pointer-events-none' : ''}`}>
+                      <FiUpload size={12} />
+                      {uploading ? 'Uploading…' : 'Add photos'}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="sr-only"
+                        onChange={handleImageUpload}
+                        disabled={uploading || (editPost.images ?? []).length >= 8}
+                      />
+                    </label>
+                  </div>
+
+                  {(editPost.images ?? []).length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {(editPost.images ?? []).map((url, i) => (
+                        <div key={i} className="relative group aspect-video rounded-xl overflow-hidden border border-gray-100">
+                          <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => removeImage(i)}
+                            className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          >
+                            <FiX size={10} />
+                          </button>
+                          {i === 0 && (
+                            <span className="absolute bottom-1.5 left-1.5 font-body text-[9px] font-semibold bg-black/50 text-white px-1.5 py-0.5 rounded-full">Cover</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blush-300 hover:bg-blush-50/30 transition-colors">
+                      <FiImage className="text-gray-300 mb-1" size={18} />
+                      <span className="font-body text-xs text-gray-400">Click to add photos</span>
+                      <input type="file" accept="image/*" multiple className="sr-only" onChange={handleImageUpload} disabled={uploading} />
+                    </label>
+                  )}
+                </div>
+
                 <div className="flex gap-3">
                   <button onClick={applyEdit} className="btn-primary text-xs px-4 py-2">Apply</button>
                   <button onClick={() => setEditIdx(null)} className="btn-outline text-xs px-4 py-2">Cancel</button>
                 </div>
               </div>
             ) : (
-              <div className="admin-card flex items-start justify-between gap-4">
+              <div className={`admin-card flex items-start justify-between gap-4 ${post.hidden ? 'opacity-50' : ''}`}>
                 <div>
-                  <span className="font-body text-xs bg-blush-100 text-blush-600 px-2 py-0.5 rounded-full font-semibold">{post.category}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-body text-xs bg-blush-100 text-blush-600 px-2 py-0.5 rounded-full font-semibold">{post.category}</span>
+                    {post.images?.length > 0 && (
+                      <span className="inline-flex items-center gap-1 font-body text-[10px] text-gray-400"><FiImage size={10} />{post.images.length}</span>
+                    )}
+                  </div>
                   <p className="font-body font-semibold text-sm text-gray-800 mt-1">{post.title}</p>
                   <p className="font-body text-xs text-gray-400">{post.date} · {post.readTime}</p>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex gap-2 shrink-0 items-center">
+                  <button
+                    onClick={() => setPosts(p => p.map((pp, i) => i === idx ? { ...pp, hidden: !pp.hidden } : pp))}
+                    className="admin-btn-sm"
+                    title={post.hidden ? 'Show on portfolio' : 'Hide from portfolio'}
+                  >
+                    {post.hidden ? <FiEyeOff size={14} /> : <FiEye size={14} />}
+                  </button>
                   <button onClick={() => openEdit(idx)} className="admin-btn-sm">Edit</button>
                   <button onClick={() => setPosts(p => p.filter((_, i) => i !== idx))} className="admin-btn-sm text-red-500">Delete</button>
                 </div>
