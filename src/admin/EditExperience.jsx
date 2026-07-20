@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { sortJobsByDate, computePeriod, MONTHS, YEARS } from '../utils/sortJobs';
+import { YanaField } from './YanaField';
 
 const blankJob = () => ({
   id: Date.now(), role: '', company: '',
@@ -24,6 +25,7 @@ export default function EditExperience({ onToast }) {
   const [editEduIdx, setEditEduIdx] = useState(null);
   const [editEdu, setEditEdu] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
   const [tab, setTab] = useState('jobs');
 
   const handleSave = async () => {
@@ -36,6 +38,7 @@ export default function EditExperience({ onToast }) {
         languages,
       });
       onToast('Experience saved!');
+      setSaveCount(c => c + 1);
     } catch {
       onToast('Save failed — check your connection and try again.');
     } finally {
@@ -131,13 +134,7 @@ export default function EditExperience({ onToast }) {
                     </div>
                   </div>
                   <div>
-                    <label className="admin-label">Highlights (one per line)</label>
-                    <textarea
-                      rows={5}
-                      className="admin-input resize-none"
-                      value={editJob.highlights.join('\n')}
-                      onChange={e => setJobField('highlights', e.target.value.split('\n'))}
-                    />
+                    <YanaField label="Highlights (one per line)" rows={5} value={editJob.highlights.join('\n')} onChange={e => setJobField('highlights', e.target.value.split('\n'))} yanaField={`job-highlights-${editJobIdx}`} yana saveCount={saveCount} />
                   </div>
                   <div className="flex gap-3">
                     <button onClick={applyJob} className="btn-primary text-xs px-4 py-2">Apply</button>
@@ -195,14 +192,7 @@ export default function EditExperience({ onToast }) {
                     </div>
                   ) : (
                     <div>
-                      <label className="admin-label">Description</label>
-                      <textarea
-                        rows={4}
-                        className="admin-input resize-none"
-                        placeholder="What this certification covers, what skills it validates..."
-                        value={editEdu.description ?? ''}
-                        onChange={e => setEditEdu(e2 => ({ ...e2, description: e.target.value }))}
-                      />
+                      <YanaField label="Description" rows={4} value={editEdu.description ?? ''} onChange={e => setEditEdu(e2 => ({ ...e2, description: e.target.value }))} yanaField={`edu-description-${editEduIdx}`} placeholder="What this certification covers, what skills it validates..." yana saveCount={saveCount} />
                     </div>
                   )}
                   <div className="flex gap-3">

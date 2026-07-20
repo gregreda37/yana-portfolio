@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { FiEye, FiEyeOff, FiSearch, FiX } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
+import { YanaField } from './YanaField';
 
 function BookSearch({ onSelect }) {
   const [query, setQuery] = useState('');
@@ -135,6 +136,7 @@ export default function EditBooks({ onToast }) {
   const [editIdx, setEditIdx] = useState(null);
   const [editBook, setEditBook] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
 
   const openEdit = (idx) => { setEditIdx(idx); setEditBook({ ...items[idx], takeaways: items[idx].takeaways.map(t => ({ ...t })) }); };
   const applyEdit = () => { setItems(p => p.map((b, i) => i === editIdx ? editBook : b)); setEditIdx(null); };
@@ -157,6 +159,7 @@ export default function EditBooks({ onToast }) {
     try {
       await saveSection('books', { items });
       onToast('Books saved!');
+      setSaveCount(c => c + 1);
     } catch {
       onToast('Save failed — check your connection and try again.');
     } finally {
@@ -236,12 +239,10 @@ export default function EditBooks({ onToast }) {
                     </select>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="admin-label">Synopsis</label>
-                    <textarea rows={3} className="admin-input resize-none" value={editBook.synopsis} onChange={e => set('synopsis', e.target.value)} />
+                    <YanaField label="Synopsis" rows={3} value={editBook.synopsis} onChange={e => set('synopsis', e.target.value)} yanaField={`book-synopsis-${editIdx}`} yana saveCount={saveCount} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="admin-label">How I Apply This</label>
-                    <textarea rows={3} className="admin-input resize-none" value={editBook.applyToSales} onChange={e => set('applyToSales', e.target.value)} />
+                    <YanaField label="How I Apply This" rows={3} value={editBook.applyToSales} onChange={e => set('applyToSales', e.target.value)} yanaField={`book-apply-${editIdx}`} yana saveCount={saveCount} />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="admin-label">Amazon Link <span className="text-gray-300 font-normal">(auto-filled by search, or paste manually)</span></label>
@@ -270,7 +271,7 @@ export default function EditBooks({ onToast }) {
                           )}
                         </div>
                         <input placeholder="Heading" value={t.heading} onChange={e => setTakeaway(ti, 'heading', e.target.value)} className="admin-input" />
-                        <textarea placeholder="Body" rows={3} className="admin-input resize-none" value={t.body} onChange={e => setTakeaway(ti, 'body', e.target.value)} />
+                        <YanaField label={`Takeaway ${ti + 1} Body`} rows={3} value={t.body} onChange={e => setTakeaway(ti, 'body', e.target.value)} yanaField={`book-takeaway-${editIdx}-${ti}`} yana saveCount={saveCount} />
                       </div>
                     ))}
                   </div>

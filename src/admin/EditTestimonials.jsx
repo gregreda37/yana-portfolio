@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
+import { YanaField } from './YanaField';
 
 const COLOR_OPTIONS = [
   'bg-lavender-200', 'bg-teal-200', 'bg-sky-200', 'bg-purple-100', 'bg-emerald-100',
@@ -12,6 +13,7 @@ export default function EditTestimonials({ onToast }) {
   const [editIdx, setEditIdx] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
 
   const openEdit = (idx) => { setEditIdx(idx); setEditItem({ ...items[idx] }); };
   const applyEdit = () => { setItems(p => p.map((t, i) => i === editIdx ? editItem : t)); setEditIdx(null); };
@@ -23,6 +25,7 @@ export default function EditTestimonials({ onToast }) {
     try {
       await saveSection('testimonials', { items });
       onToast('Testimonials saved!');
+      setSaveCount(c => c + 1);
     } catch {
       onToast('Save failed — check your connection and try again.');
     } finally {
@@ -41,8 +44,7 @@ export default function EditTestimonials({ onToast }) {
             {editIdx === idx ? (
               <div className="admin-card border-2 border-blush-300 space-y-3">
                 <div>
-                  <label className="admin-label">Quote</label>
-                  <textarea rows={4} className="admin-input resize-none" value={editItem.quote} onChange={e => set('quote', e.target.value)} />
+                  <YanaField label="Quote" rows={4} value={editItem.quote} onChange={e => set('quote', e.target.value)} yanaField={`testimonial-quote-${idx}`} yana saveCount={saveCount} />
                 </div>
                 <div className="grid sm:grid-cols-3 gap-3">
                   {[['Name', 'name'], ['Title', 'title'], ['Company', 'company']].map(([label, key]) => (

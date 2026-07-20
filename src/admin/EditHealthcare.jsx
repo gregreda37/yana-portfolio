@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
+import { YanaField } from './YanaField';
 
 // Normalise stored highlights: accept both legacy strings and new { text, date } objects
 function parseHighlights(raw) {
@@ -16,6 +17,7 @@ export default function EditHealthcare({ onToast }) {
   const [highlights, setHighlights] = useState(parseHighlights(healthcare?.highlights));
   const [skills, setSkills] = useState((healthcare?.skills ?? []).join(', '));
   const [saving, setSaving] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
 
   const addHighlight = () => setHighlights(prev => [...prev, { text: '', date: '' }]);
   const removeHighlight = (i) => setHighlights(prev => prev.filter((_, idx) => idx !== i));
@@ -32,6 +34,7 @@ export default function EditHealthcare({ onToast }) {
         skills: skills.split(',').map(s => s.trim()).filter(Boolean),
       });
       onToast(`${label} section saved!`);
+      setSaveCount(c => c + 1);
     } catch {
       onToast('Save failed — check your connection and try again.');
     } finally {
@@ -58,8 +61,7 @@ export default function EditHealthcare({ onToast }) {
         </div>
 
         <div>
-          <label className="admin-label">Summary Paragraph</label>
-          <textarea rows={4} className="admin-input resize-none" value={summary} onChange={e => setSummary(e.target.value)} />
+          <YanaField label="Summary Paragraph" rows={4} value={summary} onChange={e => setSummary(e.target.value)} yanaField="healthcare-summary" yana saveCount={saveCount} />
         </div>
 
         <div>

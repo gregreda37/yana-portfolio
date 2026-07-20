@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import { useData } from '../contexts/DataContext';
+import { YanaField } from './YanaField';
 
 const DEFAULT_CATEGORIES = ['Prospecting', 'Sales Strategy', 'Relationship Building', 'Objection Handling', 'Leadership', 'Productivity'];
 
@@ -24,6 +25,7 @@ export default function EditBlog({ onToast }) {
   const [editIdx, setEditIdx] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
 
   const addCategory = () => {
     const name = newCategory.trim();
@@ -46,6 +48,7 @@ export default function EditBlog({ onToast }) {
     try {
       await saveSection('blog', { posts, categories, sectionLabel, sectionTitle, sectionDescription });
       onToast('Blog posts saved!');
+      setSaveCount(c => c + 1);
     } catch {
       onToast('Save failed — check your connection and try again.');
     } finally {
@@ -171,12 +174,10 @@ export default function EditBlog({ onToast }) {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="admin-label">Excerpt</label>
-                    <textarea rows={2} className="admin-input resize-none" value={editPost.excerpt} onChange={e => set('excerpt', e.target.value)} />
+                    <YanaField label="Excerpt" rows={2} value={editPost.excerpt} onChange={e => set('excerpt', e.target.value)} yanaField={`blog-excerpt-${editIdx}`} yana saveCount={saveCount} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="admin-label">Body (separate paragraphs with a blank line)</label>
-                    <textarea rows={12} className="admin-input resize-none font-mono text-xs" value={editPost.body} onChange={e => set('body', e.target.value)} />
+                    <YanaField label="Body" rows={12} value={editPost.body} onChange={e => set('body', e.target.value)} yanaField={`blog-body-${editIdx}`} yana saveCount={saveCount} />
                   </div>
                 </div>
                 <div className="flex gap-3">
