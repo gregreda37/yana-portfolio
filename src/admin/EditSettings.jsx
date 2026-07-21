@@ -15,7 +15,7 @@ const VISIBILITY_OPTIONS = [
   { key: 'experience',   label: 'Experience & Education', desc: 'Work history timeline' },
   { key: 'specialty',    label: 'Specialty Highlight',    desc: 'Your custom background section' },
   { key: 'testimonials', label: 'Testimonials',           desc: 'Client quotes and reviews' },
-  { key: 'blog',         label: 'Blog & Recent Reads',    desc: 'Insights and book notes' },
+  { key: 'blog',         label: 'Blog & My Bookshelf',    desc: 'Insights and book notes' },
   { key: 'calendly',     label: 'Calendly Booking',       desc: 'Schedule a meeting section' },
   { key: 'contact',      label: 'Contact Form',           desc: 'Get in touch section' },
 ];

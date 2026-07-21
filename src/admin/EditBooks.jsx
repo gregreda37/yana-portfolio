@@ -169,7 +169,7 @@ export default function EditBooks({ onToast }) {
 
   return (
     <div>
-      <h2 className="admin-section-title">Recent Reads</h2>
+      <h2 className="admin-section-title">My Bookshelf</h2>
       <p className="admin-section-desc">Books shown in the Insights section with takeaways and application notes.</p>
 
       <div className="mt-6 space-y-3">

@@ -29,7 +29,7 @@ const NAV = [
   { key: 'healthcare',   label: 'Specialty',          icon: FiHeart },
   { key: 'testimonials', label: 'Testimonials',       icon: FiMessageSquare },
   { key: 'blog',         label: 'Blog Posts',         icon: FiEdit },
-  { key: 'books',        label: 'Recent Reads',       icon: FiBook },
+  { key: 'books',        label: 'My Bookshelf',       icon: FiBook },
   { key: 'calendly',    label: 'Calendly Booking',   icon: FiCalendar },
   { key: 'video',       label: 'Intro Video',        icon: FiVideo },
   { key: 'inbox',        label: 'Resume Requests',    icon: FiInbox },

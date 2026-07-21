@@ -204,8 +204,8 @@ export default function Blog() {
                   <FiBookOpen className="text-accent-500" size={18} />
                 </div>
                 <div>
-                  <p className="section-subtitle mb-0">What I'm Reading</p>
-                  <h3 className="font-display text-3xl font-light text-gray-800 leading-tight">Recent Reads</h3>
+                  <p className="section-subtitle mb-0">My Library</p>
+                  <h3 className="font-display text-3xl font-light text-gray-800 leading-tight">My Bookshelf</h3>
                 </div>
               </div>
 
